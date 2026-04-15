@@ -1,0 +1,104 @@
+{
+  "capturedAt": "2026-04-14T02:17:22Z",
+  "findings": [
+    {
+      "id": "F6C1C27B-2AD1-4A3C-BBA8-AAE22AF0A742",
+      "severity": "warning",
+      "category": "wifi",
+      "technicalLabel": "Connection dropouts",
+      "impactSummary": "220 periods where your internet froze",
+      "description": "Your Mac recorded 220 times when this network appeared connected but nothing was actually getting through. This can look like pages not loading, video calls freezing, or downloads stalling.",
+      "howToResolve": "Try restarting your router. If it keeps happening, it could be WiFi interference, a flaky cable, or an ISP issue.",
+      "technicalDetails": "RTT avg: 69.8ms, Conn success: 3092/3248",
+      "isAutoFixable": false,
+      "source": "Scan",
+      "archived": false,
+      "resolved": false
+    },
+    {
+      "id": "67A77876-E4D0-4240-A17A-14AE16A1A87F",
+      "severity": "info",
+      "category": "wifi",
+      "technicalLabel": "Channel width reduced",
+      "impactSummary": "Channel width reduced",
+      "description": "Your AP supports 160 MHz channels but is operating at 80 MHz. This may be due to nearby interference or conservative settings.",
+      "howToResolve": "",
+      "technicalDetails": "BSSIDs: e4:c0:e2:6a:73:97",
+      "isAutoFixable": false,
+      "source": "WiFi Scan",
+      "archived": false,
+      "resolved": false
+    },
+    {
+      "id": "AEB41ECA-69E5-4531-AB4B-AE68DA673C7B",
+      "severity": "info",
+      "category": "security",
+      "technicalLabel": "WPA2 only",
+      "impactSummary": "WPA2 only",
+      "description": "Your network uses WPA2, which is adequate but consider upgrading to WPA3 for stronger protection.",
+      "howToResolve": "",
+      "technicalDetails": "BSSIDs: e4:c0:e2:6a:73:97",
+      "isAutoFixable": false,
+      "source": "WiFi Scan",
+      "archived": false,
+      "resolved": false
+    },
+    {
+      "id": "FD7D2E74-C3BB-483C-BD4C-1E5E429F8DCD",
+      "severity": "info",
+      "category": "security",
+      "technicalLabel": "No management frame protection",
+      "impactSummary": "Your WiFi could be stronger against attacks",
+      "description": "Your AP does not support 802.11w protected management frames. This leaves the network vulnerable to deauthentication attacks.",
+      "howToResolve": "Enable PMF/802.11w in your router's advanced wireless settings.",
+      "technicalDetails": "BSSIDs: e4:c0:e2:6a:73:97",
+      "isAutoFixable": false,
+      "source": "WiFi Scan",
+      "archived": false,
+      "resolved": false
+    }
+  ],
+  "wifi": {
+    "ssid": "SpectrumSetup-90",
+    "bssid": "e4:c0:e2:6a:73:97",
+    "rssi": -44,
+    "noise": -93,
+    "channel": 157,
+    "channelWidth": 80,
+    "wifiProtocol": "Wi-Fi 5 (802.11ac)",
+    "transmitRate": 866,
+    "security": "WPA2 Personal"
+  },
+  "system": {
+    "cpuUsagePercent": 16.2,
+    "memoryUsedPercent": 69.7,
+    "diskUsedPercent": 28.3,
+    "thermalState": "Nominal",
+    "uptimeSeconds": 890761,
+    "batteryChargePercent": 80,
+    "isLowPowerMode": false
+  },
+  "networkQuality": {
+    "gatewayLatencyMs": 7.6,
+    "gatewayLossPercent": 0.0,
+    "destinationLatencyMs": 39.7,
+    "destinationLossPercent": 0.0,
+    "destinationJitterMs": 11.0
+  },
+  "gateway": {
+    "vendor": "Sagemcom Ca",
+    "model": "",
+    "managementReachable": true,
+    "supportsIntegration": false,
+    "webAdminURL": "https://192.168.1.1"
+  },
+  "metadata": {
+    "computerName": "Alius202602b",
+    "modelIdentifier": "Mac16,8",
+    "chipName": "Apple M4 Pro",
+    "serialNumber": "G41VT696FK",
+    "version": "1.2.2",
+    "appName": "Network Weather",
+    "generatedAt": "2026-04-14T02:17:22Z"
+  }
+}
