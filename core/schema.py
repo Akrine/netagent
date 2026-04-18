@@ -21,15 +21,22 @@ class Severity(str, Enum):
 
 
 class FindingCategory(str, Enum):
-    WIFI = "wifi"
+    # Horizontal categories -- valid across all connectors
     SECURITY = "security"
     PERFORMANCE = "performance"
     CONNECTIVITY = "connectivity"
+    SYSTEM = "system"
+    AVAILABILITY = "availability"
+    CONFIGURATION = "configuration"
+    UNKNOWN = "unknown"
+
+    # Vertical categories -- connector-specific, kept for backward compatibility
+    WIFI = "wifi"
     GATEWAY = "gateway"
     ISP = "isp"
     VPN = "vpn"
-    SYSTEM = "system"
-    UNKNOWN = "unknown"
+    CRM = "crm"
+    COLLABORATION = "collaboration"
 
 
 @dataclass
