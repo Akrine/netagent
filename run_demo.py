@@ -1,13 +1,10 @@
 """
 run_demo.py
 
-End-to-end demo showing the same agent working across two different
-connectors: Network Weather (network diagnostics) and SystemHealth
-(local machine metrics).
+End-to-end demo showing Savvy operating in two modes:
 
-This demonstrates the core framework principle: the agent has no
-knowledge of where data comes from. Swap the connector, get the
-same reasoning capability over different data.
+1. Single connector mode: same agent over Network Weather and System Health
+2. Multi-connector mode: one question answered across all systems simultaneously
 
 Usage:
     export ANTHROPIC_API_KEY=your_key_here
@@ -24,6 +21,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from agents.diagnostic import DiagnosticAgent
+from agents.multi_connector import MultiConnectorAgent
 from connectors.mock_snapshot import MockSnapshotConnector
 from connectors.system_health import SystemHealthConnector
 from core.context import ConversationContext
@@ -57,7 +55,7 @@ def print_snapshot_summary(snapshot: DiagnosticSnapshot) -> None:
         print("Findings:       None")
 
 
-def run_conversation(
+def run_single_connector(
     agent: DiagnosticAgent,
     snapshot: DiagnosticSnapshot,
     questions: list[str],
@@ -87,29 +85,50 @@ def main() -> None:
 
     agent = DiagnosticAgent()
 
-    print_separator("CONNECTOR 1: Network Weather (recorded snapshot)")
     nw_connector = MockSnapshotConnector("fixtures/my_network.json")
     nw_snapshot = nw_connector.fetch("local-device")
+
+    sys_connector = SystemHealthConnector()
+    sys_snapshot = sys_connector.fetch("local")
+
+    print_separator("CONNECTOR 1: Network Weather (recorded snapshot)")
     print_snapshot_summary(nw_snapshot)
-    run_conversation(agent, nw_snapshot, [
+    run_single_connector(agent, nw_snapshot, [
         "Why does my Zoom keep freezing?",
         "What is the most urgent issue I should fix?",
     ])
 
     print_separator("CONNECTOR 2: System Health (live machine data)")
-    sys_connector = SystemHealthConnector()
-    sys_snapshot = sys_connector.fetch("local")
     print_snapshot_summary(sys_snapshot)
-    run_conversation(agent, sys_snapshot, [
+    run_single_connector(agent, sys_snapshot, [
         "How is my machine performing right now?",
         "Is there anything I should be concerned about?",
     ])
+
+    print_separator("MULTI-CONNECTOR: Savvy as control plane")
+    print("Querying all systems simultaneously...")
+    multi_agent = MultiConnectorAgent(connectors={
+        "network_weather": nw_connector,
+        "system_health": sys_connector,
+    })
+
+    questions = [
+        "How is everything looking across all my systems right now?",
+        "What is the single most important thing I should fix?",
+    ]
+
+    for question in questions:
+        print(f"\nQ: {question}")
+        result = multi_agent.query(question=question)
+        print(f"\nA: {result['answer']}")
+        print(f"\nOverall severity across all systems: {result['overall_severity'].upper()}")
+        print("-" * 60)
 
     print_separator("FRAMEWORK SUMMARY")
     print("Same agent. Same reasoning layer. Two completely different data sources.")
     print(f"Network Weather findings: {len(nw_snapshot.findings)}")
     print(f"System Health findings:   {len(sys_snapshot.findings)}")
-    print(f"Combined coverage:        {len(nw_snapshot.findings) + len(sys_snapshot.findings)} issues across network and machine health")
+    print(f"Multi-connector query:    Both systems answered in a single response.")
 
 
 if __name__ == "__main__":
