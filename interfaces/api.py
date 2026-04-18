@@ -27,12 +27,9 @@ load_dotenv()
 from agents.diagnostic import DiagnosticAgent
 from agents.multi_connector import MultiConnectorAgent
 from connectors.base import ConnectorAuthError, ConnectorError, ConnectorNotFoundError
-from connectors.google_meet import GoogleMeetConnector
-from connectors.mock_snapshot import MockSnapshotConnector
-from connectors.monday_com import MondayConnector
-from connectors.salesforce import SalesforceConnector
 from connectors.system_health import SystemHealthConnector
-from connectors.zoom import ZoomConnector
+from connectors.mock_snapshot import MockSnapshotConnector
+from core.registry import registry
 from core.schema import DiagnosticSnapshot
 
 app = FastAPI(
@@ -49,20 +46,9 @@ def root() -> FileResponse:
 
 _agent = DiagnosticAgent()
 _multi_agent = MultiConnectorAgent(connectors={
-    "system_health": SystemHealthConnector(),
-    "mock_network_weather": MockSnapshotConnector("fixtures/my_network.json"),
+    name: registry.get(name)
+    for name in registry.available_names()
 })
-
-_CONNECTORS = {
-    "system_health": lambda device_id: SystemHealthConnector().fetch(device_id),
-    "mock_network_weather": lambda device_id: MockSnapshotConnector(
-        "fixtures/my_network.json"
-    ).fetch(device_id),
-    "monday_com": lambda device_id: MondayConnector().fetch(device_id),
-    "salesforce": lambda device_id: SalesforceConnector().fetch(device_id),
-    "zoom": lambda device_id: ZoomConnector().fetch(device_id),
-    "google_meet": lambda device_id: GoogleMeetConnector().fetch(device_id),
-}
 
 
 class ConversationTurn(BaseModel):
@@ -110,21 +96,21 @@ def health() -> HealthResponse:
     return HealthResponse(
         status="ok",
         version="0.1.0",
-        connectors=list(_CONNECTORS.keys()),
+        connectors=registry.available_names(),
     )
 
 
 @app.post("/query", response_model=QueryResponse)
 def query(request: QueryRequest) -> QueryResponse:
-    if request.connector not in _CONNECTORS:
+    if request.connector not in registry:
         raise HTTPException(
             status_code=400,
-            detail=f"Unknown connector '{request.connector}'. Available: {list(_CONNECTORS.keys())}",
+            detail=f"Unknown connector '{request.connector}'. Available: {registry.available_names()}",
         )
 
     try:
-        snapshot: DiagnosticSnapshot = _CONNECTORS[request.connector](
-            request.device_id
+        snapshot: DiagnosticSnapshot = registry.fetch(
+            request.connector, request.device_id
         )
     except ConnectorAuthError as exc:
         raise HTTPException(status_code=401, detail=str(exc))
