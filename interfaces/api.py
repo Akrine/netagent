@@ -23,6 +23,7 @@ from pydantic import BaseModel, Field
 load_dotenv()
 
 from agents.diagnostic import DiagnosticAgent
+from agents.multi_connector import MultiConnectorAgent
 from connectors.base import ConnectorAuthError, ConnectorError, ConnectorNotFoundError
 from connectors.mock_snapshot import MockSnapshotConnector
 from connectors.monday_com import MondayConnector
@@ -36,6 +37,10 @@ app = FastAPI(
 )
 
 _agent = DiagnosticAgent()
+_multi_agent = MultiConnectorAgent(connectors={
+    "system_health": SystemHealthConnector(),
+    "mock_network_weather": MockSnapshotConnector("fixtures/my_network.json"),
+})
 
 _CONNECTORS = {
     "system_health": lambda device_id: SystemHealthConnector().fetch(device_id),
@@ -136,4 +141,46 @@ def query(request: QueryRequest) -> QueryResponse:
         findings_count=len(snapshot.findings),
         sources=response.sources,
         follow_up_suggestions=response.follow_up_suggestions,
+    )
+
+
+class MultiQueryRequest(BaseModel):
+    question: str = Field(
+        ...,
+        description="Natural language question to answer across all connected systems",
+    )
+    history: list[ConversationTurn] = Field(
+        default_factory=list,
+        description="Prior conversation turns for multi-turn context",
+    )
+
+
+class MultiQueryResponse(BaseModel):
+    answer: str
+    overall_severity: str
+    systems_queried: list[str]
+    errors: dict[str, str]
+
+
+@app.post("/query/all", response_model=MultiQueryResponse)
+def query_all(request: MultiQueryRequest) -> MultiQueryResponse:
+    """Query all connected systems simultaneously and return a unified response."""
+    history = [
+        {"role": turn.role, "content": turn.content}
+        for turn in request.history
+    ]
+
+    try:
+        result = _multi_agent.query(
+            question=request.question,
+            history=history or None,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Agent error: {exc}")
+
+    return MultiQueryResponse(
+        answer=result["answer"],
+        overall_severity=result["overall_severity"],
+        systems_queried=list(result["snapshots"].keys()),
+        errors=result["errors"],
     )
