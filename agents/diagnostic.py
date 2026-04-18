@@ -41,6 +41,7 @@ Guidelines:
 - If the data does not contain enough information to answer confidently, say so.
 - Do not invent data that is not present in the snapshot.
 - Keep responses concise unless the user asks for detail.
+- Do not use emoticons or emoji in your responses.
 
 Current snapshot captured at: {captured_at}
 Overall severity: {overall_severity}

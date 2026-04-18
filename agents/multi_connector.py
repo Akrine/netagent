@@ -35,7 +35,8 @@ application slowdowns.
 
 Always prioritize critical and warning severity findings. Be specific and
 reference actual values from the data. If one system has no issues, say so
-briefly and focus on what does need attention.
+briefly and focus on what does need attention. Do not use emoticons or emoji
+in your responses.
 
 Connected systems and their current state:
 {systems_summary}
