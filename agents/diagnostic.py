@@ -18,9 +18,12 @@ import json
 import os
 from typing import Optional
 
+import time
+
 import anthropic
 
 from agents.base import AgentResponse, BaseAgent
+from core.logger import ConversationLogger
 from core.schema import DiagnosticSnapshot, FindingCategory, Severity
 
 
@@ -59,12 +62,14 @@ class DiagnosticAgent(BaseAgent):
         api_key: Optional[str] = None,
         model: str = _DEFAULT_MODEL,
         max_tokens: int = 1024,
+        enable_logging: bool = True,
     ) -> None:
         self._client = anthropic.Anthropic(
             api_key=api_key or os.environ.get("ANTHROPIC_API_KEY", "")
         )
         self._model = model
         self._max_tokens = max_tokens
+        self._logger = ConversationLogger() if enable_logging else None
 
     @property
     def name(self) -> str:
@@ -86,9 +91,20 @@ class DiagnosticAgent(BaseAgent):
             messages=messages,
         )
 
+        t1 = time.time()
         answer = response.content[0].text
+        latency_ms = (time.time() - t1) * 1000
         sources = self._extract_sources(snapshot, answer)
         follow_ups = self._suggest_follow_ups(snapshot)
+
+        if self._logger:
+            self._logger.log(
+                snapshot=snapshot,
+                question=question,
+                answer=answer,
+                history=history,
+                latency_ms=latency_ms,
+            )
 
         return AgentResponse(
             answer=answer,
