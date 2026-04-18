@@ -25,6 +25,7 @@ load_dotenv()
 from agents.diagnostic import DiagnosticAgent
 from connectors.base import ConnectorAuthError, ConnectorError, ConnectorNotFoundError
 from connectors.mock_snapshot import MockSnapshotConnector
+from connectors.monday_com import MondayConnector
 from connectors.system_health import SystemHealthConnector
 from core.schema import DiagnosticSnapshot
 
@@ -41,6 +42,7 @@ _CONNECTORS = {
     "mock_network_weather": lambda device_id: MockSnapshotConnector(
         "fixtures/my_network.json"
     ).fetch(device_id),
+    "monday_com": lambda device_id: MondayConnector().fetch(device_id),
 }
 
 
