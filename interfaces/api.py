@@ -18,6 +18,8 @@ from typing import Optional
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 load_dotenv()
@@ -35,6 +37,12 @@ app = FastAPI(
     description="AI control plane for enterprise software. Natural language interface over any connected data source.",
     version="0.1.0",
 )
+
+app.mount("/static", StaticFiles(directory="interfaces/static"), name="static")
+
+@app.get("/")
+def root() -> FileResponse:
+    return FileResponse("interfaces/static/index.html")
 
 _agent = DiagnosticAgent()
 _multi_agent = MultiConnectorAgent(connectors={

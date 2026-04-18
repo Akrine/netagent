@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Savvy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --border: #1e1e1e;
+    --border-active: #2e2e2e;
+    --text: #e8e8e8;
+    --text-muted: #666;
+    --text-dim: #444;
+    --accent: #e8ff4d;
+    --accent-dim: rgba(232, 255, 77, 0.08);
+    --warning: #ff9500;
+    --critical: #ff3b30;
+    --ok: #34c759;
+    --info: #636366;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-weight: 300;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: var(--mono);
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  .status-bar {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .status-pill {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    padding: 4px 10px;
+    border-radius: 2px;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  .status-pill.ok { border-color: var(--ok); color: var(--ok); }
+  .status-pill.warning { border-color: var(--warning); color: var(--warning); }
+  .status-pill.critical { border-color: var(--critical); color: var(--critical); }
+
+  /* Layout */
+  .layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* Sidebar */
+  aside {
+    border-right: 1px solid var(--border);
+    padding: 24px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .sidebar-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    padding: 0 20px;
+    margin-bottom: 8px;
+    margin-top: 16px;
+  }
+
+  .sidebar-label:first-child { margin-top: 0; }
+
+  .connector-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 20px;
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: var(--text-muted);
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 300;
+    text-align: left;
+    width: 100%;
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+  }
+
+  .connector-btn:hover {
+    color: var(--text);
+    background: var(--surface);
+  }
+
+  .connector-btn.active {
+    color: var(--text);
+    border-left-color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  .connector-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-dim);
+    flex-shrink: 0;
+  }
+
+  .connector-btn.active .connector-dot { background: var(--accent); }
+
+  /* Main content */
+  main {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 56px);
+    overflow: hidden;
+  }
+
+  /* Messages */
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    scroll-behavior: smooth;
+  }
+
+  .messages::-webkit-scrollbar { width: 4px; }
+  .messages::-webkit-scrollbar-track { background: transparent; }
+  .messages::-webkit-scrollbar-thumb { background: var(--border-active); border-radius: 2px; }
+
+  .empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    color: var(--text-dim);
+  }
+
+  .empty-state-title {
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  .empty-state-sub {
+    font-size: 13px;
+    color: var(--text-dim);
+    text-align: center;
+    max-width: 360px;
+    line-height: 1.6;
+  }
+
+  .suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 8px;
+  }
+
+  .suggestion {
+    font-size: 12px;
+    padding: 6px 14px;
+    border: 1px solid var(--border-active);
+    border-radius: 2px;
+    cursor: pointer;
+    color: var(--text-muted);
+    background: none;
+    font-family: var(--sans);
+    transition: all 0.15s;
+  }
+
+  .suggestion:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* Message bubbles */
+  .message {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border);
+    animation: fadeIn 0.2s ease;
+  }
+
+  .message:last-child { border-bottom: none; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .message-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .message-role {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .message-role.user { color: var(--accent); }
+
+  .message-connector {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+  }
+
+  .message-severity {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    padding: 2px 6px;
+    border-radius: 2px;
+    text-transform: uppercase;
+  }
+
+  .sev-warning { background: rgba(255,149,0,0.1); color: var(--warning); }
+  .sev-critical { background: rgba(255,59,48,0.1); color: var(--critical); }
+  .sev-ok { background: rgba(52,199,89,0.1); color: var(--ok); }
+  .sev-info { background: rgba(99,99,102,0.15); color: var(--info); }
+
+  .message-content {
+    font-size: 14px;
+    line-height: 1.75;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .message-content strong, .message-content b {
+    font-weight: 500;
+    color: #fff;
+  }
+
+  .message-systems {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+
+  .system-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 3px 8px;
+    border: 1px solid var(--border-active);
+    border-radius: 2px;
+    color: var(--text-dim);
+    letter-spacing: 0.04em;
+  }
+
+  /* Thinking indicator */
+  .thinking {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 20px 0;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+  }
+
+  .thinking-dots {
+    display: flex;
+    gap: 4px;
+  }
+
+  .thinking-dots span {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 1.2s infinite;
+  }
+
+  .thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.2; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1); }
+  }
+
+  /* Input area */
+  .input-area {
+    border-top: 1px solid var(--border);
+    padding: 20px 32px;
+    background: var(--bg);
+  }
+
+  .input-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+  }
+
+  .input-wrapper {
+    flex: 1;
+    position: relative;
+  }
+
+  textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 300;
+    padding: 12px 16px;
+    resize: none;
+    outline: none;
+    min-height: 48px;
+    max-height: 160px;
+    line-height: 1.5;
+    transition: border-color 0.15s;
+  }
+
+  textarea:focus { border-color: var(--border-active); }
+  textarea::placeholder { color: var(--text-dim); }
+
+  .send-btn {
+    background: var(--accent);
+    border: none;
+    border-radius: 4px;
+    color: #000;
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    padding: 0 20px;
+    height: 48px;
+    text-transform: uppercase;
+    transition: all 0.15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .send-btn:hover { background: #f5ff7a; }
+  .send-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .input-hint {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 8px;
+    letter-spacing: 0.04em;
+  }
+
+  /* Mode selector */
+  .mode-selector {
+    display: flex;
+    gap: 0;
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    width: fit-content;
+  }
+
+  .mode-btn {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    padding: 6px 16px;
+    text-transform: uppercase;
+    transition: all 0.15s;
+    border-right: 1px solid var(--border);
+  }
+
+  .mode-btn:last-child { border-right: none; }
+  .mode-btn.active { background: var(--accent-dim); color: var(--accent); }
+  .mode-btn:hover:not(.active) { color: var(--text-muted); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Savvy</div>
+  <div class="status-bar">
+    <div class="status-pill" id="severityPill">Connecting...</div>
+    <div style="font-family: var(--mono); font-size: 11px; color: var(--text-dim);" id="systemCount"></div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside>
+    <div class="sidebar-label">Mode</div>
+    <button class="connector-btn active" id="btn-all" onclick="setMode('all')">
+      <div class="connector-dot"></div>
+      All Systems
+    </button>
+
+    <div class="sidebar-label">Single Connector</div>
+    <button class="connector-btn" id="btn-system_health" onclick="setMode('system_health')">
+      <div class="connector-dot"></div>
+      System Health
+    </button>
+    <button class="connector-btn" id="btn-mock_network_weather" onclick="setMode('mock_network_weather')">
+      <div class="connector-dot"></div>
+      Network Weather
+    </button>
+    <button class="connector-btn" id="btn-monday_com" onclick="setMode('monday_com')">
+      <div class="connector-dot"></div>
+      Monday.com
+    </button>
+  </aside>
+
+  <main>
+    <div class="messages" id="messages">
+      <div class="empty-state" id="emptyState">
+        <div class="empty-state-title">Savvy Control Plane</div>
+        <div class="empty-state-sub">Ask anything about your connected systems. Savvy reads live data and responds with specific, actionable answers.</div>
+        <div class="suggestions">
+          <button class="suggestion" onclick="sendSuggestion(this)">How is everything looking right now?</button>
+          <button class="suggestion" onclick="sendSuggestion(this)">What is the most urgent issue to fix?</button>
+          <button class="suggestion" onclick="sendSuggestion(this)">Is my network secure?</button>
+          <button class="suggestion" onclick="sendSuggestion(this)">How is my machine performing?</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-area">
+      <div class="input-row">
+        <div class="input-wrapper">
+          <textarea
+            id="questionInput"
+            placeholder="Ask Savvy anything about your systems..."
+            rows="1"
+            onkeydown="handleKey(event)"
+            oninput="autoResize(this)"
+          ></textarea>
+        </div>
+        <button class="send-btn" id="sendBtn" onclick="sendQuestion()">Send</button>
+      </div>
+      <div class="input-hint" id="inputHint">Enter to send &nbsp;·&nbsp; Shift+Enter for new line &nbsp;·&nbsp; Mode: All Systems</div>
+    </div>
+  </main>
+</div>
+
+<script>
+  let mode = 'all';
+  let history = [];
+  let isLoading = false;
+
+  function setMode(newMode) {
+    mode = newMode;
+    history = [];
+    document.querySelectorAll('.connector-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-' + newMode).classList.add('active');
+    const label = newMode === 'all' ? 'All Systems' : newMode.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    document.getElementById('inputHint').textContent = `Enter to send · Shift+Enter for new line · Mode: ${label}`;
+
+    const msgs = document.getElementById('messages');
+    msgs.innerHTML = '';
+    const empty = document.createElement('div');
+    empty.className = 'empty-state';
+    empty.id = 'emptyState';
+    empty.innerHTML = `
+      <div class="empty-state-title">Savvy Control Plane</div>
+      <div class="empty-state-sub">Ask anything about your connected systems.</div>
+      <div class="suggestions">
+        <button class="suggestion" onclick="sendSuggestion(this)">How is everything looking right now?</button>
+        <button class="suggestion" onclick="sendSuggestion(this)">What is the most urgent issue to fix?</button>
+        <button class="suggestion" onclick="sendSuggestion(this)">Is my network secure?</button>
+        <button class="suggestion" onclick="sendSuggestion(this)">How is my machine performing?</button>
+      </div>`;
+    msgs.appendChild(empty);
+  }
+
+  function sendSuggestion(btn) {
+    document.getElementById('questionInput').value = btn.textContent;
+    sendQuestion();
+  }
+
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendQuestion();
+    }
+  }
+
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+  }
+
+  function removeEmpty() {
+    const e = document.getElementById('emptyState');
+    if (e) e.remove();
+  }
+
+  function appendMessage(role, content, meta = {}) {
+    removeEmpty();
+    const msgs = document.getElementById('messages');
+    const div = document.createElement('div');
+    div.className = 'message';
+
+    let metaHtml = `<div class="message-meta">
+      <span class="message-role ${role}">${role}</span>`;
+
+    if (meta.connector) {
+      metaHtml += `<span class="message-connector">${meta.connector}</span>`;
+    }
+    if (meta.severity) {
+      const sevClass = meta.severity.toLowerCase();
+      metaHtml += `<span class="message-severity sev-${sevClass}">${meta.severity}</span>`;
+    }
+    metaHtml += '</div>';
+
+    let systemsHtml = '';
+    if (meta.systems && meta.systems.length > 0) {
+      systemsHtml = '<div class="message-systems">' +
+        meta.systems.map(s => `<span class="system-tag">${s}</span>`).join('') +
+        '</div>';
+    }
+
+    div.innerHTML = metaHtml +
+      `<div class="message-content">${formatContent(content)}</div>` +
+      systemsHtml;
+
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function formatContent(text) {
+    return text
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/^## (.+)$/gm, '<strong style="font-size:15px;display:block;margin:8px 0 4px">$1</strong>')
+      .replace(/^# (.+)$/gm, '<strong style="font-size:16px;display:block;margin:8px 0 4px">$1</strong>')
+      .replace(/\n/g, '<br>');
+  }
+
+  function showThinking() {
+    removeEmpty();
+    const msgs = document.getElementById('messages');
+    const div = document.createElement('div');
+    div.className = 'thinking';
+    div.id = 'thinkingIndicator';
+    div.innerHTML = `
+      <div class="thinking-dots">
+        <span></span><span></span><span></span>
+      </div>
+      <span>Querying systems...</span>`;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function hideThinking() {
+    const t = document.getElementById('thinkingIndicator');
+    if (t) t.remove();
+  }
+
+  function updateSeverityPill(severity) {
+    const pill = document.getElementById('severityPill');
+    pill.className = 'status-pill ' + (severity || 'ok').toLowerCase();
+    pill.textContent = (severity || 'ok').toUpperCase();
+  }
+
+  async function sendQuestion() {
+    if (isLoading) return;
+    const input = document.getElementById('questionInput');
+    const question = input.value.trim();
+    if (!question) return;
+
+    input.value = '';
+    input.style.height = 'auto';
+    isLoading = true;
+    document.getElementById('sendBtn').disabled = true;
+
+    appendMessage('user', question);
+    history.push({ role: 'user', content: question });
+    showThinking();
+
+    try {
+      let url, body;
+
+      if (mode === 'all') {
+        url = '/query/all';
+        body = { question, history: history.slice(0, -1) };
+      } else {
+        url = '/query';
+        body = {
+          connector: mode,
+          device_id: 'local',
+          question,
+          history: history.slice(0, -1),
+        };
+      }
+
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+      if (!resp.ok) {
+        const err = await resp.json();
+        throw new Error(err.detail || 'Request failed');
+      }
+
+      const data = await resp.json();
+      hideThinking();
+
+      const meta = {
+        severity: data.overall_severity,
+        connector: data.connector || null,
+        systems: data.systems_queried || null,
+      };
+
+      appendMessage('assistant', data.answer, meta);
+      history.push({ role: 'assistant', content: data.answer });
+      updateSeverityPill(data.overall_severity);
+
+      if (data.systems_queried) {
+        document.getElementById('systemCount').textContent =
+          data.systems_queried.length + ' systems';
+      }
+
+    } catch (err) {
+      hideThinking();
+      appendMessage('assistant', 'Error: ' + err.message, {});
+    } finally {
+      isLoading = false;
+      document.getElementById('sendBtn').disabled = false;
+      input.focus();
+    }
+  }
+
+  // Load health on start
+  fetch('/health').then(r => r.json()).then(data => {
+    document.getElementById('systemCount').textContent =
+      data.connectors.length + ' connectors';
+    document.getElementById('severityPill').textContent = 'Ready';
+    document.getElementById('severityPill').className = 'status-pill ok';
+  }).catch(() => {
+    document.getElementById('severityPill').textContent = 'Offline';
+    document.getElementById('severityPill').className = 'status-pill critical';
+  });
+</script>
+</body>
+</html>
