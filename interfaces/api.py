@@ -27,9 +27,12 @@ load_dotenv()
 from agents.diagnostic import DiagnosticAgent
 from agents.multi_connector import MultiConnectorAgent
 from connectors.base import ConnectorAuthError, ConnectorError, ConnectorNotFoundError
+from connectors.google_meet import GoogleMeetConnector
 from connectors.mock_snapshot import MockSnapshotConnector
 from connectors.monday_com import MondayConnector
+from connectors.salesforce import SalesforceConnector
 from connectors.system_health import SystemHealthConnector
+from connectors.zoom import ZoomConnector
 from core.schema import DiagnosticSnapshot
 
 app = FastAPI(
@@ -56,6 +59,9 @@ _CONNECTORS = {
         "fixtures/my_network.json"
     ).fetch(device_id),
     "monday_com": lambda device_id: MondayConnector().fetch(device_id),
+    "salesforce": lambda device_id: SalesforceConnector().fetch(device_id),
+    "zoom": lambda device_id: ZoomConnector().fetch(device_id),
+    "google_meet": lambda device_id: GoogleMeetConnector().fetch(device_id),
 }
 
 
