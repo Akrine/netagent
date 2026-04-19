@@ -47,10 +47,15 @@ def root() -> FileResponse:
     return FileResponse("interfaces/static/index.html")
 
 _agent = DiagnosticAgent()
-_multi_agent = MultiConnectorAgent(connectors={
-    name: registry.get(name)
-    for name in registry.available_names()
-})
+def _build_multi_connectors():
+    connectors = {}
+    for name in registry.available_names():
+        if name == "network_weather_fleet":
+            continue
+        connectors[name] = registry.get(name)
+    return connectors
+
+_multi_agent = MultiConnectorAgent(connectors=_build_multi_connectors())
 
 
 class ConversationTurn(BaseModel):
