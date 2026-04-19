@@ -209,6 +209,7 @@ class NetworkWeatherFleetConnector(BaseConnector):
         if total == 0:
             return findings
 
+        org_map = {o["orgId"]: o.get("name", o["orgId"]) for o in orgs}
         critical = [d for d in devices if d.get("status") == "critical"]
         never_seen = [d for d in devices
                       if d.get("connectionState") == "offline"
@@ -218,7 +219,16 @@ class NetworkWeatherFleetConnector(BaseConnector):
 
         critical_pct = len(critical) / total * 100
 
+        critical_by_org = {}
+        for d in critical:
+            org_name = org_map.get(d.get("orgId", ""), d.get("orgId", "Unknown"))
+            critical_by_org[org_name] = critical_by_org.get(org_name, 0) + 1
+
         if critical_pct >= 20:
+            org_breakdown = ", ".join(
+                f"{name}: {count}" for name, count in
+                sorted(critical_by_org.items(), key=lambda x: -x[1])
+            )
             findings.append(Finding(
                 id="fleet-critical-devices",
                 severity=Severity.CRITICAL,
@@ -226,32 +236,36 @@ class NetworkWeatherFleetConnector(BaseConnector):
                 title=f"{len(critical)} devices ({critical_pct:.0f}%) are critical",
                 description=(
                     f"{len(critical)} out of {total} devices have not been seen "
-                    f"in over 24 hours or have never checked in. These devices "
-                    f"are effectively invisible to your network monitoring."
+                    f"in over 24 hours. Breakdown by location: {org_breakdown}."
                 ),
                 resolution=(
                     "Investigate critical devices. Verify Network Weather is "
                     "installed and running. Check if devices were decommissioned."
                 ),
                 technical_detail=(
-                    f"Critical: {len(critical)}, Never seen: {len(never_seen)}, "
-                    f"Total: {total}"
+                    f"Critical by org: {org_breakdown}. "
+                    f"Never seen: {len(never_seen)}, Total: {total}"
                 ),
             ))
         elif len(critical) > 0:
+            org_breakdown = ", ".join(
+                f"{name}: {count}" for name, count in
+                sorted(critical_by_org.items(), key=lambda x: -x[1])
+            )
             findings.append(Finding(
                 id="fleet-some-critical",
                 severity=Severity.WARNING,
                 category=FindingCategory.CONNECTIVITY,
                 title=f"{len(critical)} devices are offline or critical",
                 description=(
-                    f"{len(critical)} devices have not reported in over 24 hours."
+                    f"{len(critical)} devices have not reported in over 24 hours. "
+                    f"Breakdown by location: {org_breakdown}."
                 ),
                 resolution=(
                     "Check these devices. They may be offline, decommissioned, "
                     "or experiencing network issues."
                 ),
-                technical_detail=f"Critical devices: {len(critical)} of {total}",
+                technical_detail=f"Critical by org: {org_breakdown}",
             ))
 
         if outdated:
