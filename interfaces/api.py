@@ -29,6 +29,7 @@ from agents.multi_connector import MultiConnectorAgent
 from connectors.base import ConnectorAuthError, ConnectorError, ConnectorNotFoundError
 from connectors.system_health import SystemHealthConnector
 from connectors.mock_snapshot import MockSnapshotConnector
+from core.cache import snapshot_cache
 from core.registry import registry
 from core.schema import DiagnosticSnapshot
 
@@ -109,8 +110,11 @@ def query(request: QueryRequest) -> QueryResponse:
         )
 
     try:
-        snapshot: DiagnosticSnapshot = registry.fetch(
-            request.connector, request.device_id
+        spec = registry.get_spec(request.connector)
+        snapshot: DiagnosticSnapshot = snapshot_cache.get_or_fetch(
+            request.connector,
+            registry.get(request.connector).fetch,
+            request.device_id or spec.default_device_id,
         )
     except ConnectorAuthError as exc:
         raise HTTPException(status_code=401, detail=str(exc))
@@ -184,3 +188,23 @@ def query_all(request: MultiQueryRequest) -> MultiQueryResponse:
         systems_queried=list(result["snapshots"].keys()),
         errors=result["errors"],
     )
+
+
+@app.get("/cache/stats")
+def cache_stats() -> dict:
+    """Return current cache statistics."""
+    return snapshot_cache.stats()
+
+
+@app.post("/cache/invalidate/{connector}")
+def cache_invalidate(connector: str, device_id: str = "local") -> dict:
+    """Invalidate a specific cache entry."""
+    snapshot_cache.invalidate(connector, device_id)
+    return {"invalidated": connector, "device_id": device_id}
+
+
+@app.post("/cache/clear")
+def cache_clear() -> dict:
+    """Clear the entire cache."""
+    snapshot_cache.invalidate_all()
+    return {"cleared": True}
