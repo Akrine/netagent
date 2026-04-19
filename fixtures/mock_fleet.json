@@ -1,0 +1,369 @@
+{
+  "organizations": [
+    {
+      "orgId": "org_acme_nyc",
+      "name": "Acme Corp - New York",
+      "mspId": "msp_demo",
+      "slug": "acme-corp-new-york",
+      "overallHealth": "critical",
+      "stats": {
+        "total": 20,
+        "healthy": 8,
+        "warning": 6,
+        "critical": 6,
+        "onlineNow": 14,
+        "networkQuality": {
+          "good": 8,
+          "degraded": 6,
+          "poor": 6,
+          "offline": 0,
+          "overall": "poor"
+        }
+      }
+    },
+    {
+      "orgId": "org_acme_chi",
+      "name": "Acme Corp - Chicago",
+      "mspId": "msp_demo",
+      "slug": "acme-corp-chicago",
+      "overallHealth": "warning",
+      "stats": {
+        "total": 18,
+        "healthy": 13,
+        "warning": 4,
+        "critical": 1,
+        "onlineNow": 17,
+        "networkQuality": {
+          "good": 13,
+          "degraded": 4,
+          "poor": 1,
+          "offline": 0,
+          "overall": "degraded"
+        }
+      }
+    },
+    {
+      "orgId": "org_acme_lon",
+      "name": "Acme Corp - London",
+      "mspId": "msp_demo",
+      "slug": "acme-corp-london",
+      "overallHealth": "healthy",
+      "stats": {
+        "total": 12,
+        "healthy": 12,
+        "warning": 0,
+        "critical": 0,
+        "onlineNow": 12,
+        "networkQuality": {
+          "good": 12,
+          "degraded": 0,
+          "poor": 0,
+          "offline": 0,
+          "overall": "good"
+        }
+      }
+    }
+  ],
+  "devices": [
+    {
+      "clientId": "nyc-001", "orgId": "org_acme_nyc", "status": "critical",
+      "connectionState": "offline", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-16T08:00:00Z", "assetId": "NYC-MBP-001",
+      "networkQuality": {"latencyMs": 320, "lossPercent": 12.5, "jitterMs": 85, "status": "poor"}
+    },
+    {
+      "clientId": "nyc-002", "orgId": "org_acme_nyc", "status": "critical",
+      "connectionState": "offline", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-16T09:30:00Z", "assetId": "NYC-MBP-002",
+      "networkQuality": {"latencyMs": 450, "lossPercent": 18.2, "jitterMs": 120, "status": "poor"}
+    },
+    {
+      "clientId": "nyc-003", "orgId": "org_acme_nyc", "status": "critical",
+      "connectionState": "offline", "os": "Windows", "isCurrentVersion": true,
+      "lastSeen": "2026-04-16T10:15:00Z", "assetId": "NYC-WIN-003",
+      "networkQuality": {"latencyMs": 380, "lossPercent": 15.0, "jitterMs": 95, "status": "poor"}
+    },
+    {
+      "clientId": "nyc-004", "orgId": "org_acme_nyc", "status": "critical",
+      "connectionState": "offline", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-16T11:00:00Z", "assetId": "NYC-MBP-004",
+      "networkQuality": {"latencyMs": 290, "lossPercent": 9.8, "jitterMs": 78, "status": "poor"}
+    },
+    {
+      "clientId": "nyc-005", "orgId": "org_acme_nyc", "status": "critical",
+      "connectionState": "offline", "os": "macOS", "isCurrentVersion": false,
+      "lastSeen": "2026-04-16T07:45:00Z", "assetId": "NYC-MBP-005",
+      "networkQuality": {"latencyMs": 510, "lossPercent": 22.1, "jitterMs": 140, "status": "poor"}
+    },
+    {
+      "clientId": "nyc-006", "orgId": "org_acme_nyc", "status": "critical",
+      "connectionState": "offline", "os": "Windows", "isCurrentVersion": true,
+      "lastSeen": "2026-04-16T06:30:00Z", "assetId": "NYC-WIN-006",
+      "networkQuality": {"latencyMs": 420, "lossPercent": 16.7, "jitterMs": 110, "status": "poor"}
+    },
+    {
+      "clientId": "nyc-007", "orgId": "org_acme_nyc", "status": "warning",
+      "connectionState": "idle", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T01:00:00Z", "assetId": "NYC-MBP-007",
+      "networkQuality": {"latencyMs": 145, "lossPercent": 3.2, "jitterMs": 42, "status": "degraded"}
+    },
+    {
+      "clientId": "nyc-008", "orgId": "org_acme_nyc", "status": "warning",
+      "connectionState": "idle", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T00:45:00Z", "assetId": "NYC-MBP-008",
+      "networkQuality": {"latencyMs": 168, "lossPercent": 4.1, "jitterMs": 55, "status": "degraded"}
+    },
+    {
+      "clientId": "nyc-009", "orgId": "org_acme_nyc", "status": "warning",
+      "connectionState": "streaming", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T02:15:00Z", "assetId": "NYC-MBP-009",
+      "networkQuality": {"latencyMs": 132, "lossPercent": 2.8, "jitterMs": 38, "status": "degraded"}
+    },
+    {
+      "clientId": "nyc-010", "orgId": "org_acme_nyc", "status": "warning",
+      "connectionState": "streaming", "os": "Windows", "isCurrentVersion": false,
+      "lastSeen": "2026-04-18T02:10:00Z", "assetId": "NYC-WIN-010",
+      "networkQuality": {"latencyMs": 158, "lossPercent": 3.9, "jitterMs": 48, "status": "degraded"}
+    },
+    {
+      "clientId": "nyc-011", "orgId": "org_acme_nyc", "status": "warning",
+      "connectionState": "streaming", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T02:05:00Z", "assetId": "NYC-MBP-011",
+      "networkQuality": {"latencyMs": 178, "lossPercent": 5.2, "jitterMs": 62, "status": "degraded"}
+    },
+    {
+      "clientId": "nyc-012", "orgId": "org_acme_nyc", "status": "warning",
+      "connectionState": "streaming", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T02:00:00Z", "assetId": "NYC-MBP-012",
+      "networkQuality": {"latencyMs": 142, "lossPercent": 2.5, "jitterMs": 35, "status": "degraded"}
+    },
+    {
+      "clientId": "nyc-013", "orgId": "org_acme_nyc", "status": "healthy",
+      "connectionState": "streaming", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T02:20:00Z", "assetId": "NYC-MBP-013",
+      "networkQuality": {"latencyMs": 28, "lossPercent": 0, "jitterMs": 4, "status": "good"}
+    },
+    {
+      "clientId": "nyc-014", "orgId": "org_acme_nyc", "status": "healthy",
+      "connectionState": "streaming", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T02:18:00Z", "assetId": "NYC-MBP-014",
+      "networkQuality": {"latencyMs": 32, "lossPercent": 0, "jitterMs": 6, "status": "good"}
+    },
+    {
+      "clientId": "nyc-015", "orgId": "org_acme_nyc", "status": "healthy",
+      "connectionState": "streaming", "os": "Windows", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T02:16:00Z", "assetId": "NYC-WIN-015",
+      "networkQuality": {"latencyMs": 25, "lossPercent": 0, "jitterMs": 3, "status": "good"}
+    },
+    {
+      "clientId": "nyc-016", "orgId": "org_acme_nyc", "status": "healthy",
+      "connectionState": "streaming", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T02:14:00Z", "assetId": "NYC-MBP-016",
+      "networkQuality": {"latencyMs": 30, "lossPercent": 0, "jitterMs": 5, "status": "good"}
+    },
+    {
+      "clientId": "nyc-017", "orgId": "org_acme_nyc", "status": "healthy",
+      "connectionState": "streaming", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T02:12:00Z", "assetId": "NYC-MBP-017",
+      "networkQuality": {"latencyMs": 22, "lossPercent": 0, "jitterMs": 3, "status": "good"}
+    },
+    {
+      "clientId": "nyc-018", "orgId": "org_acme_nyc", "status": "healthy",
+      "connectionState": "streaming", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T02:10:00Z", "assetId": "NYC-MBP-018",
+      "networkQuality": {"latencyMs": 27, "lossPercent": 0, "jitterMs": 4, "status": "good"}
+    },
+    {
+      "clientId": "nyc-019", "orgId": "org_acme_nyc", "status": "healthy",
+      "connectionState": "streaming", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T02:08:00Z", "assetId": "NYC-MBP-019",
+      "networkQuality": {"latencyMs": 35, "lossPercent": 0, "jitterMs": 7, "status": "good"}
+    },
+    {
+      "clientId": "nyc-020", "orgId": "org_acme_nyc", "status": "healthy",
+      "connectionState": "streaming", "os": "Windows", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T02:06:00Z", "assetId": "NYC-WIN-020",
+      "networkQuality": {"latencyMs": 29, "lossPercent": 0, "jitterMs": 5, "status": "good"}
+    },
+    {
+      "clientId": "chi-001", "orgId": "org_acme_chi", "status": "critical",
+      "connectionState": "offline", "os": "macOS", "isCurrentVersion": false,
+      "lastSeen": "2026-04-15T14:00:00Z", "assetId": "CHI-MBP-001",
+      "networkQuality": null
+    },
+    {
+      "clientId": "chi-002", "orgId": "org_acme_chi", "status": "warning",
+      "connectionState": "idle", "os": "macOS", "isCurrentVersion": false,
+      "lastSeen": "2026-04-17T18:00:00Z", "assetId": "CHI-MBP-002",
+      "networkQuality": {"latencyMs": 125, "lossPercent": 2.1, "jitterMs": 32, "status": "degraded"}
+    },
+    {
+      "clientId": "chi-003", "orgId": "org_acme_chi", "status": "warning",
+      "connectionState": "idle", "os": "Windows", "isCurrentVersion": false,
+      "lastSeen": "2026-04-17T20:00:00Z", "assetId": "CHI-WIN-003",
+      "networkQuality": {"latencyMs": 138, "lossPercent": 2.8, "jitterMs": 38, "status": "degraded"}
+    },
+    {
+      "clientId": "chi-004", "orgId": "org_acme_chi", "status": "warning",
+      "connectionState": "streaming", "os": "macOS", "isCurrentVersion": false,
+      "lastSeen": "2026-04-18T02:00:00Z", "assetId": "CHI-MBP-004",
+      "networkQuality": {"latencyMs": 115, "lossPercent": 1.9, "jitterMs": 28, "status": "degraded"}
+    },
+    {
+      "clientId": "chi-005", "orgId": "org_acme_chi", "status": "warning",
+      "connectionState": "streaming", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T02:10:00Z", "assetId": "CHI-MBP-005",
+      "networkQuality": {"latencyMs": 142, "lossPercent": 3.1, "jitterMs": 45, "status": "degraded"}
+    },
+    {
+      "clientId": "chi-006", "orgId": "org_acme_chi", "status": "healthy",
+      "connectionState": "streaming", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T02:20:00Z", "assetId": "CHI-MBP-006",
+      "networkQuality": {"latencyMs": 18, "lossPercent": 0, "jitterMs": 2, "status": "good"}
+    },
+    {
+      "clientId": "chi-007", "orgId": "org_acme_chi", "status": "healthy",
+      "connectionState": "streaming", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T02:18:00Z", "assetId": "CHI-MBP-007",
+      "networkQuality": {"latencyMs": 22, "lossPercent": 0, "jitterMs": 3, "status": "good"}
+    },
+    {
+      "clientId": "chi-008", "orgId": "org_acme_chi", "status": "healthy",
+      "connectionState": "streaming", "os": "Windows", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T02:16:00Z", "assetId": "CHI-WIN-008",
+      "networkQuality": {"latencyMs": 20, "lossPercent": 0, "jitterMs": 2, "status": "good"}
+    },
+    {
+      "clientId": "chi-009", "orgId": "org_acme_chi", "status": "healthy",
+      "connectionState": "streaming", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T02:14:00Z", "assetId": "CHI-MBP-009",
+      "networkQuality": {"latencyMs": 25, "lossPercent": 0, "jitterMs": 4, "status": "good"}
+    },
+    {
+      "clientId": "chi-010", "orgId": "org_acme_chi", "status": "healthy",
+      "connectionState": "streaming", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T02:12:00Z", "assetId": "CHI-MBP-010",
+      "networkQuality": {"latencyMs": 19, "lossPercent": 0, "jitterMs": 2, "status": "good"}
+    },
+    {
+      "clientId": "chi-011", "orgId": "org_acme_chi", "status": "healthy",
+      "connectionState": "streaming", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T02:10:00Z", "assetId": "CHI-MBP-011",
+      "networkQuality": {"latencyMs": 23, "lossPercent": 0, "jitterMs": 3, "status": "good"}
+    },
+    {
+      "clientId": "chi-012", "orgId": "org_acme_chi", "status": "healthy",
+      "connectionState": "streaming", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T02:08:00Z", "assetId": "CHI-MBP-012",
+      "networkQuality": {"latencyMs": 21, "lossPercent": 0, "jitterMs": 2, "status": "good"}
+    },
+    {
+      "clientId": "chi-013", "orgId": "org_acme_chi", "status": "healthy",
+      "connectionState": "streaming", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T02:06:00Z", "assetId": "CHI-MBP-013",
+      "networkQuality": {"latencyMs": 17, "lossPercent": 0, "jitterMs": 2, "status": "good"}
+    },
+    {
+      "clientId": "chi-014", "orgId": "org_acme_chi", "status": "healthy",
+      "connectionState": "streaming", "os": "Windows", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T02:04:00Z", "assetId": "CHI-WIN-014",
+      "networkQuality": {"latencyMs": 24, "lossPercent": 0, "jitterMs": 3, "status": "good"}
+    },
+    {
+      "clientId": "chi-015", "orgId": "org_acme_chi", "status": "healthy",
+      "connectionState": "streaming", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T02:02:00Z", "assetId": "CHI-MBP-015",
+      "networkQuality": {"latencyMs": 20, "lossPercent": 0, "jitterMs": 2, "status": "good"}
+    },
+    {
+      "clientId": "chi-016", "orgId": "org_acme_chi", "status": "healthy",
+      "connectionState": "streaming", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T02:00:00Z", "assetId": "CHI-MBP-016",
+      "networkQuality": {"latencyMs": 26, "lossPercent": 0, "jitterMs": 4, "status": "good"}
+    },
+    {
+      "clientId": "chi-017", "orgId": "org_acme_chi", "status": "healthy",
+      "connectionState": "streaming", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-17T23:58:00Z", "assetId": "CHI-MBP-017",
+      "networkQuality": {"latencyMs": 22, "lossPercent": 0, "jitterMs": 3, "status": "good"}
+    },
+    {
+      "clientId": "chi-018", "orgId": "org_acme_chi", "status": "healthy",
+      "connectionState": "streaming", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-17T23:56:00Z", "assetId": "CHI-MBP-018",
+      "networkQuality": {"latencyMs": 19, "lossPercent": 0, "jitterMs": 2, "status": "good"}
+    },
+    {
+      "clientId": "lon-001", "orgId": "org_acme_lon", "status": "healthy",
+      "connectionState": "streaming", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T02:20:00Z", "assetId": "LON-MBP-001",
+      "networkQuality": {"latencyMs": 15, "lossPercent": 0, "jitterMs": 2, "status": "good"}
+    },
+    {
+      "clientId": "lon-002", "orgId": "org_acme_lon", "status": "healthy",
+      "connectionState": "streaming", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T02:18:00Z", "assetId": "LON-MBP-002",
+      "networkQuality": {"latencyMs": 18, "lossPercent": 0, "jitterMs": 2, "status": "good"}
+    },
+    {
+      "clientId": "lon-003", "orgId": "org_acme_lon", "status": "healthy",
+      "connectionState": "streaming", "os": "Windows", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T02:16:00Z", "assetId": "LON-WIN-003",
+      "networkQuality": {"latencyMs": 12, "lossPercent": 0, "jitterMs": 1, "status": "good"}
+    },
+    {
+      "clientId": "lon-004", "orgId": "org_acme_lon", "status": "healthy",
+      "connectionState": "streaming", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T02:14:00Z", "assetId": "LON-MBP-004",
+      "networkQuality": {"latencyMs": 14, "lossPercent": 0, "jitterMs": 1, "status": "good"}
+    },
+    {
+      "clientId": "lon-005", "orgId": "org_acme_lon", "status": "healthy",
+      "connectionState": "streaming", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T02:12:00Z", "assetId": "LON-MBP-005",
+      "networkQuality": {"latencyMs": 16, "lossPercent": 0, "jitterMs": 2, "status": "good"}
+    },
+    {
+      "clientId": "lon-006", "orgId": "org_acme_lon", "status": "healthy",
+      "connectionState": "streaming", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T02:10:00Z", "assetId": "LON-MBP-006",
+      "networkQuality": {"latencyMs": 13, "lossPercent": 0, "jitterMs": 1, "status": "good"}
+    },
+    {
+      "clientId": "lon-007", "orgId": "org_acme_lon", "status": "healthy",
+      "connectionState": "streaming", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T02:08:00Z", "assetId": "LON-MBP-007",
+      "networkQuality": {"latencyMs": 17, "lossPercent": 0, "jitterMs": 2, "status": "good"}
+    },
+    {
+      "clientId": "lon-008", "orgId": "org_acme_lon", "status": "healthy",
+      "connectionState": "streaming", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T02:06:00Z", "assetId": "LON-MBP-008",
+      "networkQuality": {"latencyMs": 11, "lossPercent": 0, "jitterMs": 1, "status": "good"}
+    },
+    {
+      "clientId": "lon-009", "orgId": "org_acme_lon", "status": "healthy",
+      "connectionState": "streaming", "os": "Windows", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T02:04:00Z", "assetId": "LON-WIN-009",
+      "networkQuality": {"latencyMs": 14, "lossPercent": 0, "jitterMs": 1, "status": "good"}
+    },
+    {
+      "clientId": "lon-010", "orgId": "org_acme_lon", "status": "healthy",
+      "connectionState": "streaming", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T02:02:00Z", "assetId": "LON-MBP-010",
+      "networkQuality": {"latencyMs": 16, "lossPercent": 0, "jitterMs": 2, "status": "good"}
+    },
+    {
+      "clientId": "lon-011", "orgId": "org_acme_lon", "status": "healthy",
+      "connectionState": "streaming", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-18T02:00:00Z", "assetId": "LON-MBP-011",
+      "networkQuality": {"latencyMs": 13, "lossPercent": 0, "jitterMs": 1, "status": "good"}
+    },
+    {
+      "clientId": "lon-012", "orgId": "org_acme_lon", "status": "healthy",
+      "connectionState": "streaming", "os": "macOS", "isCurrentVersion": true,
+      "lastSeen": "2026-04-17T23:58:00Z", "assetId": "LON-MBP-012",
+      "networkQuality": {"latencyMs": 15, "lossPercent": 0, "jitterMs": 2, "status": "good"}
+    }
+  ]
+}

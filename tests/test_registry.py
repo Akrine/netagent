@@ -112,13 +112,13 @@ class TestAvailability:
 class TestDefaultRegistry:
     def test_default_registry_has_six_connectors(self):
         r = build_default_registry()
-        assert len(r) == 7
+        assert len(r) == 8
 
     def test_default_registry_contains_all_connectors(self):
         r = build_default_registry()
         expected = {
             "system_health", "mock_network_weather", "monday_com",
-            "salesforce", "zoom", "google_meet", "network_weather_fleet"
+            "salesforce", "zoom", "google_meet", "network_weather_fleet", "mock_fleet"
         }
         actual = {s.name for s in r.all_specs()}
         assert actual == expected

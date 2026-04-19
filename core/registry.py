@@ -125,6 +125,7 @@ def build_default_registry() -> ConnectorRegistry:
     here. Nothing else needs to change.
     """
     from connectors.google_meet import GoogleMeetConnector
+    from connectors.mock_fleet import MockFleetConnector
     from connectors.network_weather_fleet import NetworkWeatherFleetConnector
     from connectors.mock_snapshot import MockSnapshotConnector
     from connectors.monday_com import MondayConnector
@@ -194,6 +195,15 @@ def build_default_registry() -> ConnectorRegistry:
         description="Fleet intelligence — device health across all orgs and locations",
         factory=NetworkWeatherFleetConnector,
         requires_creds=True,
+        default_device_id="all",
+    ))
+
+    registry.register(ConnectorSpec(
+        name="mock_fleet",
+        display_name="Fleet Demo (Acme Corp)",
+        description="Demo fleet — 50 devices across NYC, Chicago, London",
+        factory=MockFleetConnector,
+        requires_creds=False,
         default_device_id="all",
     ))
 
