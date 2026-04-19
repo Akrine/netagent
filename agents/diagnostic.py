@@ -23,6 +23,7 @@ import time
 import anthropic
 
 from agents.base import AgentResponse, BaseAgent
+from core.history import snapshot_history
 from core.logger import ConversationLogger
 from core.schema import DiagnosticSnapshot, FindingCategory, Severity
 
@@ -82,7 +83,8 @@ class DiagnosticAgent(BaseAgent):
         question: str,
         history: list[dict[str, str]] | None = None,
     ) -> AgentResponse:
-        system_prompt = self._build_system_prompt(snapshot)
+        diff = snapshot_history.diff(snapshot)
+        system_prompt = self._build_system_prompt(snapshot, diff)
         messages = self._build_messages(question, history)
 
         response = self._client.messages.create(
@@ -95,6 +97,8 @@ class DiagnosticAgent(BaseAgent):
         t1 = time.time()
         answer = response.content[0].text
         latency_ms = (time.time() - t1) * 1000
+
+        snapshot_history.store(snapshot)
         sources = self._extract_sources(snapshot, answer)
         follow_ups = self._suggest_follow_ups(snapshot)
 
@@ -113,14 +117,17 @@ class DiagnosticAgent(BaseAgent):
             follow_up_suggestions=follow_ups,
         )
 
-    def _build_system_prompt(self, snapshot: DiagnosticSnapshot) -> str:
+    def _build_system_prompt(self, snapshot: DiagnosticSnapshot, diff=None) -> str:
         snapshot_data = self._snapshot_to_context(snapshot)
+        change_context = ""
+        if diff and diff.has_changes():
+            change_context = f"\n\n--- CHANGES SINCE LAST SNAPSHOT ({diff.previous_captured_at}) ---\n{diff.summary()}\n--- END CHANGES ---"
         return _SYSTEM_TEMPLATE.format(
             connector=snapshot.source_connector,
             captured_at=snapshot.captured_at,
             overall_severity=snapshot.overall_severity.value,
             snapshot_json=json.dumps(snapshot_data, indent=2),
-        )
+        ) + change_context
 
     def _snapshot_to_context(self, snapshot: DiagnosticSnapshot) -> dict:
         """
