@@ -30,6 +30,7 @@ from connectors.base import ConnectorAuthError, ConnectorError, ConnectorNotFoun
 from connectors.system_health import SystemHealthConnector
 from connectors.mock_snapshot import MockSnapshotConnector
 from core.cache import snapshot_cache
+from core.monitor import Monitor
 from core.registry import registry
 from core.schema import DiagnosticSnapshot
 
@@ -208,3 +209,48 @@ def cache_clear() -> dict:
     """Clear the entire cache."""
     snapshot_cache.invalidate_all()
     return {"cleared": True}
+
+
+_monitor = Monitor(interval_seconds=300)
+
+
+@app.on_event("startup")
+async def startup() -> None:
+    _monitor.start()
+
+
+@app.on_event("shutdown")
+async def shutdown() -> None:
+    _monitor.stop()
+
+
+@app.get("/alerts")
+def get_alerts(unacknowledged_only: bool = False, limit: int = 50) -> dict:
+    alerts = _monitor.get_alerts(
+        unacknowledged_only=unacknowledged_only,
+        limit=limit,
+    )
+    return {
+        "alerts": [a.to_dict() for a in alerts],
+        "total": len(alerts),
+        "stats": _monitor.stats(),
+    }
+
+
+@app.post("/alerts/{alert_id}/acknowledge")
+def acknowledge_alert(alert_id: str) -> dict:
+    found = _monitor.acknowledge(alert_id)
+    if not found:
+        raise HTTPException(status_code=404, detail=f"Alert '{alert_id}' not found.")
+    return {"acknowledged": alert_id}
+
+
+@app.post("/alerts/acknowledge-all")
+def acknowledge_all_alerts() -> dict:
+    count = _monitor.acknowledge_all()
+    return {"acknowledged_count": count}
+
+
+@app.get("/monitor/stats")
+def monitor_stats() -> dict:
+    return _monitor.stats()
