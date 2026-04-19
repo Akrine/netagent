@@ -668,9 +668,10 @@
         body = { question, history: history.slice(0, -1) };
       } else {
         url = '/query';
+        const fleetMode = mode === 'mock_fleet' || mode === 'network_weather_fleet';
         body = {
           connector: mode,
-          device_id: 'local',
+          device_id: fleetMode ? 'all' : 'local',
           question,
           history: history.slice(0, -1),
         };
