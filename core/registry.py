@@ -125,6 +125,7 @@ def build_default_registry() -> ConnectorRegistry:
     here. Nothing else needs to change.
     """
     from connectors.google_meet import GoogleMeetConnector
+    from connectors.network_weather_fleet import NetworkWeatherFleetConnector
     from connectors.mock_snapshot import MockSnapshotConnector
     from connectors.monday_com import MondayConnector
     from connectors.salesforce import SalesforceConnector
@@ -183,6 +184,15 @@ def build_default_registry() -> ConnectorRegistry:
         display_name="Google Meet",
         description="Conference health — participation rates, meeting patterns",
         factory=GoogleMeetConnector,
+        requires_creds=True,
+        default_device_id="all",
+    ))
+
+    registry.register(ConnectorSpec(
+        name="network_weather_fleet",
+        display_name="Network Weather Fleet",
+        description="Fleet intelligence — device health across all orgs and locations",
+        factory=NetworkWeatherFleetConnector,
         requires_creds=True,
         default_device_id="all",
     ))
