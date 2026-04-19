@@ -18,6 +18,7 @@ from typing import Optional
 import anthropic
 
 from connectors.base import BaseConnector, ConnectorError
+from core.deduplication import deduplicate_snapshots
 from core.logger import ConversationLogger
 from core.schema import DiagnosticSnapshot, Severity
 
@@ -124,6 +125,11 @@ class MultiConnectorAgent:
         answer = response.content[0].text
         overall = self._compute_overall_severity(snapshots)
 
+        correlated = deduplicate_snapshots(snapshots)
+        cross_connector_issues = [
+            c for c in correlated if c.is_cross_connector
+        ]
+
         if self._logger:
             for connector_name, snapshot in snapshots.items():
                 self._logger.log(
@@ -138,6 +144,8 @@ class MultiConnectorAgent:
             "snapshots": snapshots,
             "errors": errors,
             "overall_severity": overall.value,
+            "correlated_findings": len(correlated),
+            "cross_connector_issues": len(cross_connector_issues),
         }
 
     def _fetch_all(
