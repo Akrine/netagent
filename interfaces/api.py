@@ -32,6 +32,7 @@ from connectors.mock_snapshot import MockSnapshotConnector
 from core.cache import snapshot_cache
 from core.monitor import Monitor
 from core.registry import registry
+from connectors.ollama import OllamaConnector
 from core.schema import DiagnosticSnapshot
 
 app = FastAPI(
@@ -79,6 +80,14 @@ class QueryRequest(BaseModel):
     history: list[ConversationTurn] = Field(
         default_factory=list,
         description="Prior conversation turns for multi-turn context",
+    )
+    ollama_host: Optional[str] = Field(
+        default=None,
+        description="If set, use local Ollama at this host instead of Claude API. Example: http://192.168.64.165:11434",
+    )
+    ollama_model: str = Field(
+        default="phi3:mini",
+        description="Ollama model to use when ollama_host is set",
     )
 
 
@@ -135,11 +144,20 @@ def query(request: QueryRequest) -> QueryResponse:
     ]
 
     try:
-        response = _agent.query(
-            snapshot=snapshot,
-            question=request.question,
-            history=history or None,
-        )
+        if request.ollama_host:
+            ollama = OllamaConnector(
+                host=request.ollama_host,
+                model=request.ollama_model,
+            )
+            answer = ollama.query(snapshot, request.question)
+            from agents.base import AgentResponse
+            response = AgentResponse(answer=answer, sources=[], follow_up_suggestions=[])
+        else:
+            response = _agent.query(
+                snapshot=snapshot,
+                question=request.question,
+                history=history or None,
+            )
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Agent error: {exc}")
 
