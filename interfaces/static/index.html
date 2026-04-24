@@ -491,6 +491,16 @@
       <div class="connector-dot"></div>
       Fleet Demo
     </button>
+
+    <div class="sidebar-label">Reasoning Backend</div>
+    <button class="connector-btn active" id="btn-backend-claude" onclick="setBackend('claude')">
+      <div class="connector-dot"></div>
+      Claude API
+    </button>
+    <button class="connector-btn" id="btn-backend-ollama" onclick="setBackend('ollama')">
+      <div class="connector-dot"></div>
+      Local (Ollama)
+    </button>
   </aside>
 
   <main>
@@ -527,6 +537,15 @@
 
 <script>
   let mode = 'all';
+  let reasoningBackend = 'claude';
+  const OLLAMA_HOST = 'http://192.168.64.165:11434';
+  const OLLAMA_MODEL = 'phi3:mini';
+
+  function setBackend(backend) {
+    reasoningBackend = backend;
+    document.querySelectorAll('[id^="btn-backend-"]').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-backend-' + backend).classList.add('active');
+  }
   let history = [];
   let isLoading = false;
 
@@ -674,6 +693,7 @@
           device_id: fleetMode ? 'all' : 'local',
           question,
           history: history.slice(0, -1),
+          ...(reasoningBackend === 'ollama' ? { ollama_host: OLLAMA_HOST, ollama_model: OLLAMA_MODEL } : {}),
         };
       }
 
