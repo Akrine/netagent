@@ -214,6 +214,15 @@ def query_all(request: MultiQueryRequest) -> MultiQueryResponse:
     )
 
 
+@app.get("/config")
+def config() -> dict:
+    """Return client configuration including Ollama settings."""
+    return {
+        "ollama_host": os.environ.get("OLLAMA_HOST", "http://192.168.64.165:11434"),
+        "ollama_model": os.environ.get("OLLAMA_MODEL", "phi3:mini"),
+    }
+
+
 @app.get("/cache/stats")
 def cache_stats() -> dict:
     """Return current cache statistics."""

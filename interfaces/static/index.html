@@ -538,8 +538,14 @@
 <script>
   let mode = 'all';
   let reasoningBackend = 'claude';
-  const OLLAMA_HOST = 'http://192.168.64.165:11434';
-  const OLLAMA_MODEL = 'phi3:mini';
+  let OLLAMA_HOST = 'http://192.168.64.165:11434';
+  let OLLAMA_MODEL = 'phi3:mini';
+
+  // Fetch Ollama config from server on startup
+  fetch('/config').then(r => r.json()).then(cfg => {
+    OLLAMA_HOST = cfg.ollama_host;
+    OLLAMA_MODEL = cfg.ollama_model;
+  }).catch(() => {});
 
   function setBackend(backend) {
     reasoningBackend = backend;
