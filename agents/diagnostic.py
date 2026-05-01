@@ -221,7 +221,7 @@ class DiagnosticAgent(BaseAgent):
         question: str,
         history: list[dict[str, str]] | None,
     ) -> list[dict[str, str]]:
-        messages = list(history) if history else []
+        messages = [m for m in (history or []) if m.get("role") in ("user", "assistant")]
         messages.append({"role": "user", "content": question})
         return messages
 

@@ -21,6 +21,7 @@ from dotenv import load_dotenv
 
 from agents.diagnostic import DiagnosticAgent
 from connectors.network_weather import NetworkWeatherConnector
+from connectors.mock_snapshot import MockSnapshotConnector
 from connectors.base import ConnectorError
 from core.context import ConversationContext
 from core.schema import DiagnosticSnapshot, Severity
@@ -69,21 +70,25 @@ def _print_follow_ups(suggestions: list[str]) -> None:
         print(f"  {i}. {s}")
 
 
-def run_cli(connector_name: str, device_id: str) -> None:
+def run_cli(connector_name: str, device_id: str, mock: bool = False) -> None:
     print(f"Connecting to {connector_name}...")
 
-    if connector_name == "network_weather":
-        connector = NetworkWeatherConnector()
+    if mock:
+        import pathlib
+        fixture = pathlib.Path(__file__).parent.parent / "fixtures" / "my_network.json"
+        snapshot = MockSnapshotConnector(str(fixture)).fetch(device_id)
     else:
-        print(f"Unknown connector: {connector_name}", file=sys.stderr)
-        sys.exit(1)
-
-    print(f"Fetching snapshot for device {device_id}...")
-    try:
-        snapshot = connector.fetch(device_id)
-    except ConnectorError as exc:
-        print(f"Failed to fetch snapshot: {exc}", file=sys.stderr)
-        sys.exit(1)
+        if connector_name == "network_weather":
+            connector = NetworkWeatherConnector()
+        else:
+            print(f"Unknown connector: {connector_name}", file=sys.stderr)
+            sys.exit(1)
+        print(f"Fetching snapshot for device {device_id}...")
+        try:
+            snapshot = connector.fetch(device_id)
+        except ConnectorError as exc:
+            print(f"Failed to fetch snapshot: {exc}", file=sys.stderr)
+            sys.exit(1)
 
     _print_snapshot_summary(snapshot)
 
@@ -143,8 +148,9 @@ def main() -> None:
         required=True,
         help="Device ID to fetch diagnostics for",
     )
+    parser.add_argument("--mock", action="store_true", help="Use mock fixture instead of live API")
     args = parser.parse_args()
-    run_cli(args.connector, args.device)
+    run_cli(args.connector, args.device, mock=args.mock)
 
 
 if __name__ == "__main__":
