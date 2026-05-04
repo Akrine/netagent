@@ -27,6 +27,7 @@ load_dotenv()
 from agents.diagnostic import DiagnosticAgent
 from agents.multi_connector import MultiConnectorAgent
 from agents.fleet_agent import FleetAgent
+from core.scheduler import fleet_scheduler
 from connectors.base import ConnectorAuthError, ConnectorError, ConnectorNotFoundError
 from connectors.system_health import SystemHealthConnector
 from connectors.mock_snapshot import MockSnapshotConnector
@@ -266,11 +267,51 @@ def fleet_analyze() -> dict:
 @app.on_event("startup")
 async def startup() -> None:
     _monitor.start()
+    fleet_scheduler.start()
 
 
 @app.on_event("shutdown")
 async def shutdown() -> None:
     _monitor.stop()
+    fleet_scheduler.stop()
+
+
+@app.get("/fleet/reports")
+def fleet_reports(limit: int = 20) -> dict:
+    """Return recent autonomous fleet diagnostic reports."""
+    reports = fleet_scheduler.get_reports(limit=limit)
+    return {
+        "reports": [r.to_dict() for r in reports],
+        "stats": fleet_scheduler.stats(),
+    }
+
+
+@app.get("/fleet/reports/latest")
+def fleet_latest() -> dict:
+    """Return the most recent fleet diagnostic report."""
+    report = fleet_scheduler.get_latest()
+    if not report:
+        raise HTTPException(status_code=404, detail="No reports yet.")
+    return report.to_dict()
+
+
+@app.get("/fleet/reports/changes")
+def fleet_changes(limit: int = 10) -> dict:
+    """Return only reports where fleet health changed from previous run."""
+    changes = fleet_scheduler.get_changes(limit=limit)
+    return {
+        "changes": [r.to_dict() for r in changes],
+        "total_changes": len(changes),
+    }
+
+
+@app.post("/fleet/reports/run-now")
+def fleet_run_now() -> dict:
+    """Trigger an immediate fleet diagnostic run outside the normal schedule."""
+    report = fleet_scheduler.run_now()
+    if not report:
+        raise HTTPException(status_code=500, detail="Fleet diagnostic run failed.")
+    return report.to_dict()
 
 
 @app.get("/alerts")
