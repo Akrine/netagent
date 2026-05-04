@@ -26,6 +26,7 @@ load_dotenv()
 
 from agents.diagnostic import DiagnosticAgent
 from agents.multi_connector import MultiConnectorAgent
+from agents.fleet_agent import FleetAgent
 from connectors.base import ConnectorAuthError, ConnectorError, ConnectorNotFoundError
 from connectors.system_health import SystemHealthConnector
 from connectors.mock_snapshot import MockSnapshotConnector
@@ -57,6 +58,7 @@ def _build_multi_connectors():
     return connectors
 
 _multi_agent = MultiConnectorAgent(connectors=_build_multi_connectors())
+_fleet_agent = FleetAgent()
 
 
 class ConversationTurn(BaseModel):
@@ -244,6 +246,21 @@ def cache_clear() -> dict:
 
 
 _monitor = Monitor(interval_seconds=300)
+
+
+@app.get("/fleet/analyze")
+def fleet_analyze() -> dict:
+    """Run autonomous fleet diagnostic and return prioritized action report."""
+    try:
+        import pathlib
+        from connectors.mock_fleet import MockFleetConnector
+        fixture = pathlib.Path(__file__).parent.parent / "fixtures" / "mock_fleet.json"
+        connector = MockFleetConnector(str(fixture))
+        snapshot = connector.fetch("all")
+        report = _fleet_agent.analyze(snapshot)
+        return report.to_dict()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
 
 
 @app.on_event("startup")
