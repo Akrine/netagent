@@ -217,6 +217,59 @@ def query_all(request: MultiQueryRequest) -> MultiQueryResponse:
     )
 
 
+@app.get("/taxonomy")
+def get_taxonomy() -> dict:
+    """Return the full connector taxonomy — domains, categories, and tagged connectors."""
+    from core.taxonomy import TAXONOMY, Tag
+    from core.registry import registry
+
+    taxonomy = TAXONOMY.to_dict()
+
+    # Attach connectors to their primary category
+    for spec in registry.all_specs():
+        try:
+            domain = TAXONOMY.get_domain_for_category(spec.category)
+            domain_key = domain.value
+            cat_key = spec.category.value
+            for cat in taxonomy[domain_key]["categories"]:
+                if cat["id"] == cat_key:
+                    if "connectors" not in cat:
+                        cat["connectors"] = []
+                    cat["connectors"].append(spec.to_dict())
+        except Exception:
+            pass
+
+    return {"taxonomy": taxonomy}
+
+
+@app.get("/connectors")
+def get_connectors(tag: str = None) -> dict:
+    """
+    Return all registered connectors, optionally filtered by tag.
+
+    Tag-based filtering is the discovery mechanism at scale —
+    instead of browsing a tree, you filter by what you care about.
+    e.g. ?tag=network returns system_health, network_weather, zoom, fleet connectors.
+    """
+    from core.taxonomy import Tag
+    from core.registry import registry
+
+    specs = registry.all_specs()
+
+    if tag:
+        try:
+            tag_enum = Tag(tag)
+            specs = [s for s in specs if s.matches_tag(tag_enum)]
+        except ValueError:
+            raise HTTPException(status_code=400, detail=f"Unknown tag: {tag}")
+
+    return {
+        "connectors": [s.to_dict() for s in specs],
+        "total": len(specs),
+        "filter": {"tag": tag} if tag else None,
+    }
+
+
 @app.get("/config")
 def config() -> dict:
     """Return client configuration including Ollama settings."""

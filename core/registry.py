@@ -20,6 +20,7 @@ from dataclasses import dataclass, field
 from typing import Callable, Optional, Type
 
 from connectors.base import BaseConnector, ConnectorAuthError
+from core.taxonomy import Category, Tag
 
 
 @dataclass
@@ -27,12 +28,14 @@ class ConnectorSpec:
     """
     Metadata and factory for a single connector.
 
-    name:           Unique identifier used in API calls and UI
-    display_name:   Human-readable name shown in the UI
-    description:    One-line description of what this connector monitors
-    factory:        Callable that returns a BaseConnector instance
-    requires_creds: Whether this connector needs credentials to instantiate
-    device_id:      Default device_id to use when none is specified
+    name:             Unique identifier used in API calls and UI
+    display_name:     Human-readable name shown in the UI
+    description:      One-line description of what this connector monitors
+    factory:          Callable that returns a BaseConnector instance
+    requires_creds:   Whether this connector needs credentials to instantiate
+    default_device_id: Default device_id to use when none is specified
+    category:         Primary category — where this connector lives in the tree
+    tags:             Context tags — where this connector surfaces in discovery
     """
     name: str
     display_name: str
@@ -40,6 +43,27 @@ class ConnectorSpec:
     factory: Callable[[], BaseConnector]
     requires_creds: bool = True
     default_device_id: str = "local"
+    category: Category = Category.NETWORK
+    tags: list[Tag] = field(default_factory=list)
+
+    def matches_tag(self, tag: Tag) -> bool:
+        return tag in self.tags
+
+    def matches_any_tag(self, tags: list[Tag]) -> bool:
+        return any(t in self.tags for t in tags)
+
+    def to_dict(self) -> dict:
+        from core.taxonomy import TAXONOMY
+        domain = TAXONOMY.get_domain_for_category(self.category)
+        return {
+            "name": self.name,
+            "display_name": self.display_name,
+            "description": self.description,
+            "requires_creds": self.requires_creds,
+            "category": self.category.value,
+            "domain": domain.value,
+            "tags": [t.value for t in self.tags],
+        }
 
 
 class ConnectorRegistry:
@@ -135,6 +159,8 @@ def build_default_registry() -> ConnectorRegistry:
 
     registry = ConnectorRegistry()
 
+    from core.taxonomy import Category, Tag
+
     registry.register(ConnectorSpec(
         name="system_health",
         display_name="System Health",
@@ -142,6 +168,8 @@ def build_default_registry() -> ConnectorRegistry:
         factory=SystemHealthConnector,
         requires_creds=False,
         default_device_id="local",
+        category=Category.COMPUTE,
+        tags=[Tag.CPU, Tag.MEMORY, Tag.DISK, Tag.SYSTEM, Tag.PERFORMANCE, Tag.AVAILABILITY],
     ))
 
     registry.register(ConnectorSpec(
@@ -151,6 +179,8 @@ def build_default_registry() -> ConnectorRegistry:
         factory=lambda: MockSnapshotConnector("fixtures/my_network.json"),
         requires_creds=False,
         default_device_id="local-device",
+        category=Category.NETWORK,
+        tags=[Tag.NETWORK, Tag.WIFI, Tag.ISP, Tag.LATENCY, Tag.PACKET_LOSS, Tag.SECURITY],
     ))
 
     registry.register(ConnectorSpec(
@@ -160,6 +190,8 @@ def build_default_registry() -> ConnectorRegistry:
         factory=MondayConnector,
         requires_creds=True,
         default_device_id="all",
+        category=Category.PROJECT_MANAGEMENT,
+        tags=[Tag.PROJECT, Tag.TASKS, Tag.AVAILABILITY],
     ))
 
     registry.register(ConnectorSpec(
@@ -169,6 +201,8 @@ def build_default_registry() -> ConnectorRegistry:
         factory=SalesforceConnector,
         requires_creds=True,
         default_device_id="all",
+        category=Category.CRM,
+        tags=[Tag.CRM, Tag.PIPELINE, Tag.AVAILABILITY],
     ))
 
     registry.register(ConnectorSpec(
@@ -178,6 +212,8 @@ def build_default_registry() -> ConnectorRegistry:
         factory=ZoomConnector,
         requires_creds=True,
         default_device_id="all",
+        category=Category.CONFERENCING,
+        tags=[Tag.CONFERENCING, Tag.VIDEO, Tag.AUDIO, Tag.CALL_QUALITY, Tag.NETWORK, Tag.LATENCY],
     ))
 
     registry.register(ConnectorSpec(
@@ -187,6 +223,8 @@ def build_default_registry() -> ConnectorRegistry:
         factory=GoogleMeetConnector,
         requires_creds=True,
         default_device_id="all",
+        category=Category.CONFERENCING,
+        tags=[Tag.CONFERENCING, Tag.VIDEO, Tag.AUDIO, Tag.CALL_QUALITY],
     ))
 
     registry.register(ConnectorSpec(
@@ -196,6 +234,8 @@ def build_default_registry() -> ConnectorRegistry:
         factory=NetworkWeatherFleetConnector,
         requires_creds=True,
         default_device_id="all",
+        category=Category.FLEET,
+        tags=[Tag.FLEET, Tag.FLEET_NETWORK, Tag.MULTI_DEVICE, Tag.LOCATION, Tag.NETWORK],
     ))
 
     registry.register(ConnectorSpec(
@@ -205,6 +245,8 @@ def build_default_registry() -> ConnectorRegistry:
         factory=MockFleetConnector,
         requires_creds=False,
         default_device_id="all",
+        category=Category.FLEET,
+        tags=[Tag.FLEET, Tag.FLEET_NETWORK, Tag.MULTI_DEVICE, Tag.LOCATION, Tag.DEMO],
     ))
 
     return registry
