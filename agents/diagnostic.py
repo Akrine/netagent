@@ -26,6 +26,7 @@ from agents.base import AgentResponse, BaseAgent
 from core.history import snapshot_history
 from core.logger import ConversationLogger
 from core.schema import DiagnosticSnapshot, FindingCategory, Severity
+from core.user_context import UserContext, Role, Scope
 
 
 _DEFAULT_MODEL = "claude-sonnet-4-20250514"
@@ -82,9 +83,10 @@ class DiagnosticAgent(BaseAgent):
         snapshot: DiagnosticSnapshot,
         question: str,
         history: list[dict[str, str]] | None = None,
+        user_context: UserContext | None = None,
     ) -> AgentResponse:
         diff = snapshot_history.diff(snapshot)
-        system_prompt = self._build_system_prompt(snapshot, diff)
+        system_prompt = self._build_system_prompt(snapshot, diff, user_context)
         messages = self._build_messages(question, history)
 
         response = self._client.messages.create(
@@ -117,17 +119,42 @@ class DiagnosticAgent(BaseAgent):
             follow_up_suggestions=follow_ups,
         )
 
-    def _build_system_prompt(self, snapshot: DiagnosticSnapshot, diff=None) -> str:
+    def _build_system_prompt(self, snapshot: DiagnosticSnapshot, diff=None, user_context: UserContext | None = None) -> str:
         snapshot_data = self._snapshot_to_context(snapshot)
         change_context = ""
         if diff and diff.has_changes():
             change_context = f"\n\n--- CHANGES SINCE LAST SNAPSHOT ({diff.previous_captured_at}) ---\n{diff.summary()}\n--- END CHANGES ---"
+        context_section = ""
+        if user_context:
+            role_instructions = {
+                Role.END_USER: (
+                    "You are responding to an end user about their own device. "
+                    "Treat any WARNING or CRITICAL finding as directly impactful to them. "
+                    "Be specific about what they will experience (slow calls, dropped connections, etc). "
+                    "Keep language non-technical — avoid jargon."
+                ),
+                Role.OPERATOR: (
+                    "You are responding to an IT operator managing a fleet of devices. "
+                    f"Only surface findings that affect {user_context.thresholds.fleet_critical_pct}%+ of devices for CRITICAL "
+                    f"or {user_context.thresholds.fleet_warning_pct}%+ for WARNING. "
+                    "Individual device issues below these thresholds are noise at fleet scale. "
+                    "Prioritize systemic patterns over individual failures."
+                ),
+                Role.ADMIN: (
+                    "You are responding to a system administrator with full fleet access. "
+                    "Surface all findings including INFO. "
+                    "Include technical detail, raw metrics, and root cause analysis."
+                ),
+            }
+            instructions = role_instructions.get(user_context.role, "")
+            context_section = "\n\n--- USER CONTEXT ---\nRole: " + user_context.role.value + "\nScope: " + user_context.scope.value + "\n" + instructions + "\n--- END USER CONTEXT ---"
+
         return _SYSTEM_TEMPLATE.format(
             connector=snapshot.source_connector,
             captured_at=snapshot.captured_at,
             overall_severity=snapshot.overall_severity.value,
             snapshot_json=json.dumps(snapshot_data, indent=2),
-        ) + change_context
+        ) + change_context + context_section
 
     def _snapshot_to_context(self, snapshot: DiagnosticSnapshot) -> dict:
         """
