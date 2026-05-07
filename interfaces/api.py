@@ -36,6 +36,7 @@ from core.monitor import Monitor
 from core.registry import registry
 from connectors.ollama import OllamaConnector
 from core.schema import DiagnosticSnapshot
+from core.user_context import UserContext, Role, Scope
 
 app = FastAPI(
     title="Savvy",
@@ -92,6 +93,10 @@ class QueryRequest(BaseModel):
         default="phi3:mini",
         description="Ollama model to use when ollama_host is set",
     )
+    user_context: Optional[UserContext] = Field(
+        default=None,
+        description="Optional user context for role-aware, scoped responses.",
+    )
 
 
 class QueryResponse(BaseModel):
@@ -146,6 +151,12 @@ def query(request: QueryRequest) -> QueryResponse:
         for turn in request.history
     ]
 
+    if request.user_context and not request.user_context.can_access_device(snapshot.device_id):
+        raise HTTPException(
+            status_code=403,
+            detail=f"User '{request.user_context.user_id}' does not have access to device '{snapshot.device_id}'.",
+        )
+
     try:
         if request.ollama_host:
             ollama = OllamaConnector(
@@ -160,6 +171,7 @@ def query(request: QueryRequest) -> QueryResponse:
                 snapshot=snapshot,
                 question=request.question,
                 history=history or None,
+                user_context=request.user_context,
             )
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Agent error: {exc}")
