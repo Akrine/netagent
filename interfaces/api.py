@@ -320,13 +320,11 @@ def fleet_analyze() -> dict:
 @app.on_event("startup")
 async def startup() -> None:
     _monitor.start()
-    fleet_scheduler.start()
 
 
 @app.on_event("shutdown")
 async def shutdown() -> None:
     _monitor.stop()
-    fleet_scheduler.stop()
 
 
 @app.get("/fleet/reports")
