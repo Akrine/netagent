@@ -85,6 +85,13 @@ class DiagnosticAgent(BaseAgent):
         history: list[dict[str, str]] | None = None,
         user_context: UserContext | None = None,
     ) -> AgentResponse:
+        if user_context is not None and not user_context.can_access_device(snapshot.device_id):
+            return AgentResponse(
+                answer="Access denied: your account does not have permission to view data for this device.",
+                sources=[],
+                follow_up_suggestions=[],
+            )
+
         diff = snapshot_history.diff(snapshot)
         system_prompt = self._build_system_prompt(snapshot, diff, user_context)
         messages = self._build_messages(question, history)
