@@ -112,11 +112,12 @@ class TestAvailability:
 class TestDefaultRegistry:
     def test_default_registry_has_six_connectors(self):
         r = build_default_registry()
-        assert len(r) == 8
+        assert len(r) == 9
 
     def test_default_registry_contains_all_connectors(self):
         r = build_default_registry()
         expected = {
+        'yuruna_diagnostics',
             "system_health", "mock_network_weather", "monday_com",
             "salesforce", "zoom", "google_meet", "network_weather_fleet", "mock_fleet"
         }

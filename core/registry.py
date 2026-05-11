@@ -249,6 +249,18 @@ def build_default_registry() -> ConnectorRegistry:
         tags=[Tag.FLEET, Tag.FLEET_NETWORK, Tag.MULTI_DEVICE, Tag.LOCATION, Tag.DEMO],
     ))
 
+    from connectors.yuruna_diagnostics import YurunaDiagnosticsConnector
+    registry.register(ConnectorSpec(
+        name="yuruna_diagnostics",
+        display_name="Yuruna Diagnostics",
+        description="Yuruna test failure diagnostics — surfaces findings from Get-SystemDiagnostics output",
+        factory=YurunaDiagnosticsConnector,
+        requires_creds=False,
+        default_device_id="local",
+        category=Category.COMPUTE,
+        tags=[Tag.SYSTEM, Tag.AVAILABILITY, Tag.PERFORMANCE],
+    ))
+
     return registry
 
 
