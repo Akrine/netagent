@@ -20,7 +20,7 @@ from typing import Optional
 
 import time
 
-import anthropic
+from core.llm import BaseLLMBackend, AnthropicBackend, LLMResponse
 
 from agents.base import AgentResponse, BaseAgent
 from core.history import snapshot_history
@@ -29,7 +29,6 @@ from core.schema import DiagnosticSnapshot, FindingCategory, Severity
 from core.user_context import UserContext, Role, Scope
 
 
-_DEFAULT_MODEL = "claude-sonnet-4-20250514"
 
 _SYSTEM_TEMPLATE = """\
 You are a diagnostic assistant for {connector} data. You have access to a \
@@ -62,15 +61,17 @@ class DiagnosticAgent(BaseAgent):
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
-        model: str = _DEFAULT_MODEL,
+        backend: BaseLLMBackend | None = None,
         max_tokens: int = 1024,
         enable_logging: bool = True,
+        # Legacy params kept for backwards compatibility
+        api_key: Optional[str] = None,
+        model: str = "claude-sonnet-4-20250514",
     ) -> None:
-        self._client = anthropic.Anthropic(
-            api_key=api_key or os.environ.get("ANTHROPIC_API_KEY", "")
-        )
-        self._model = model
+        if backend is not None:
+            self._backend = backend
+        else:
+            self._backend = AnthropicBackend(api_key=api_key, model=model)
         self._max_tokens = max_tokens
         self._logger = ConversationLogger() if enable_logging else None
 
@@ -96,16 +97,15 @@ class DiagnosticAgent(BaseAgent):
         system_prompt = self._build_system_prompt(snapshot, diff, user_context)
         messages = self._build_messages(question, history)
 
-        response = self._client.messages.create(
-            model=self._model,
-            max_tokens=self._max_tokens,
-            system=system_prompt,
+        import time as _time
+        t0 = _time.time()
+        response = self._backend.complete(
+            system_prompt=system_prompt,
             messages=messages,
+            max_tokens=self._max_tokens,
         )
-
-        t1 = time.time()
-        answer = response.content[0].text
-        latency_ms = (time.time() - t1) * 1000
+        answer = response.text
+        latency_ms = (_time.time() - t0) * 1000
 
         snapshot_history.store(snapshot)
         sources = self._extract_sources(snapshot, answer)
