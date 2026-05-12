@@ -39,7 +39,7 @@ RICH_FILE = """\
 # Captured  : 2026-05-11T18:07:07Z
 # ---
 CPU Usage: 87.3%
-Memory Usage: 91.2%
+Available%: 91.2% used (1 - MemAvailable/MemTotal)
 Disk Usage: 45.0%
 CrashLoopBackOff detected in pod website-deployment
 """
@@ -51,7 +51,7 @@ BAD_GATEWAY_FILE = """\
 # SSH user  : yuser1
 # Address   : 192.168.64.6
 # Mechanism : console
-# Exit code : 1
+# Exit code : 0
 # Captured  : 2026-05-11T18:07:07Z
 # ---
 error: unable to read URL 'https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml', server reported 502 Bad Gateway

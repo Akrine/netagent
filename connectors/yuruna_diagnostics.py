@@ -111,8 +111,8 @@ class YurunaDiagnosticsConnector(BaseConnector):
                 technical_detail=f"Exit code: {exit_code}, Mechanism: {mechanism}, Address: {address}",
             ))
 
-        # Parse body if we have real output
-        if body.strip() and "command not found" not in body:
+        # Parse body if we have real output (use exit code, not body text scan)
+        if body.strip() and exit_code == 0:
             system = self._parse_system_health(body)
             findings.extend(self._parse_findings_from_body(body))
 
@@ -168,37 +168,83 @@ class YurunaDiagnosticsConnector(BaseConnector):
 
     @staticmethod
     def _parse_system_health(body: str) -> Optional[SystemHealth]:
-        """Extract system metrics from diagnostic body if present."""
+        """Extract system metrics from structured diagnostics body."""
         cpu = None
         memory = None
         disk = None
 
         for line in body.splitlines():
             line = line.strip()
-            m = re.search(r"cpu[_\s]?usage[:\s]+(\d+\.?\d*)\s*%", line, re.IGNORECASE)
-            if m:
-                cpu = float(m.group(1))
-            m = re.search(r"memory[_\s]?usage[:\s]+(\d+\.?\d*)\s*%", line, re.IGNORECASE)
+            # Skip embedded script source lines (contain ⏎ character)
+            if "⏎" in line or len(line) > 500:
+                continue
+            # Memory: "Available%: 27.6% used (1 - MemAvailable/MemTotal)"
+            m = re.search(r"Available%:\s*([\d.]+)%\s*used", line)
             if m:
                 memory = float(m.group(1))
-            m = re.search(r"disk[_\s]?usage[:\s]+(\d+\.?\d*)\s*%", line, re.IGNORECASE)
+            # Disk: "/dev/mapper/... 15G 11G 2.9G 79% /"
+            m = re.search(r"\s(\d+)%\s+/$", line)
             if m:
                 disk = float(m.group(1))
+            # Load average: "Load  : 0.54 0.70 0.33"
+            m = re.search(r"Load\s*:\s*([\d.]+)", line)
+            if m:
+                cpu = float(m.group(1)) * 100 / 4  # normalize load to rough %
+            # Generic fallbacks
+            m = re.search(r"cpu[_\s]?usage[:\s]+([\d.]+)\s*%", line, re.IGNORECASE)
+            if m:
+                cpu = float(m.group(1))
 
         if cpu is None and memory is None and disk is None:
             return None
 
         return SystemHealth(
-            cpu_percent=cpu,
-            memory_percent=memory,
-            disk_percent=disk,
+            cpu_percent=round(cpu, 1) if cpu else None,
+            memory_percent=round(memory, 1) if memory else None,
+            disk_percent=round(disk, 1) if disk else None,
         )
 
     @staticmethod
     def _parse_findings_from_body(body: str) -> list[Finding]:
-        """Extract error signals from diagnostic body text."""
+        """Extract findings from structured diagnostics body."""
         findings = []
         body_lower = body.lower()
+
+        # Parse PROBLEMS DETECTED section — search from end of file
+        # to avoid matching the embedded script source in the middle
+        problems_match = re.search(
+            r"PROBLEMS DETECTED\s*={0,}\s*\n(.*?)(?:Diagnostics complete|\Z)",
+            body[-5000:], re.DOTALL | re.IGNORECASE
+        )
+        if problems_match:
+            problems_text = problems_match.group(1).strip()
+            problem_lines = re.findall(r"\d+\.\s+(.+)", problems_text)
+            for i, problem in enumerate(problem_lines):
+                problem = problem.strip()
+                severity = Severity.CRITICAL if any(
+                    kw in problem.upper() for kw in ["FAILED", "ERROR", "CRITICAL", "KUBE:"]
+                ) else Severity.WARNING
+                findings.append(Finding(
+                    id=f"yuruna-problem-{i+1}",
+                    severity=severity,
+                    category=FindingCategory.SYSTEM,
+                    title=f"Yuruna detected: {problem[:80]}",
+                    description=problem,
+                    resolution="Review the full diagnostics file for details.",
+                    technical_detail=f"Detected in PROBLEMS DETECTED section",
+                ))
+
+        # kubelet failure
+        if "kubelet.service: failed" in body_lower or "kubelet.service: referenced but unset" in body_lower:
+            findings.append(Finding(
+                id="yuruna-diag-kubelet-failed",
+                severity=Severity.CRITICAL,
+                category=FindingCategory.SYSTEM,
+                title="kubelet service failed",
+                description="The kubelet service failed or has misconfigured environment variables.",
+                resolution="Check kubelet logs: journalctl -u kubelet. Verify kubeadm configuration.",
+                technical_detail="kubelet.service: Failed with result 'exit-code'",
+            ))
 
         if "oomkilled" in body_lower or "out of memory" in body_lower:
             findings.append(Finding(
@@ -231,6 +277,17 @@ class YurunaDiagnosticsConnector(BaseConnector):
                 description="A 502 error was detected, likely from a GitHub or external service rate limit.",
                 resolution="Check squid cache for the failing URL. Ensure flannel.yml is cached.",
                 technical_detail="502 Bad Gateway in diagnostics output",
+            ))
+
+        if "helm" in body_lower and ("failed" in body_lower or "empty" in body_lower):
+            findings.append(Finding(
+                id="yuruna-diag-helm-failed",
+                severity=Severity.CRITICAL,
+                category=FindingCategory.SYSTEM,
+                title="Helm deployment issue detected",
+                description="Helm may have failed silently. Resource output blocks are empty, which causes malformed pod configurations.",
+                resolution="Run 'yuruna resources <project> <env>' to recapture resource outputs. Check Helm release status.",
+                technical_detail="Empty componentsRegistry or resource block in resources.output.yml",
             ))
 
         return findings
