@@ -85,3 +85,74 @@ is horizontal and could be formalized further.
 4. **Connector registry** — as the number of connectors grows, manually wiring
    them into the API and demo script will not scale. A connector registry with
    auto-discovery would make onboarding a new connector a single-file operation.
+
+---
+
+## LangChain Comparison — Trajectory Analysis
+
+Alisson asked us to look at LangChain to understand the trajectory of the code.
+Here is how Savvy's architecture compares and where the paths diverge.
+
+### What LangChain Does
+
+LangChain's core abstractions:
+- **LLM/ChatModel** — pluggable inference backend (Anthropic, OpenAI, Ollama, etc.)
+- **Chain** — a pipeline: prompt template → LLM → output parser
+- **Tool** — a function the LLM can invoke at query time
+- **Agent** — an LLM that decides which tools to call based on the question
+
+### How Savvy Compares
+
+| Concept | LangChain | Savvy |
+|---|---|---|
+| LLM backend | ChatModel (pluggable) | BaseLLMBackend (pluggable) |
+| Data source | Tool (LLM decides) | Connector (caller decides) |
+| Reasoning | Agent loop | Single-shot query |
+| Data contract | Unstructured strings | DiagnosticSnapshot (typed) |
+| Training data | Not built-in | ConversationLogger → Oumi |
+
+### The Key Architectural Difference
+
+LangChain agents are **reactive** — the LLM reads the question and decides
+which tool to call at query time. The data is fetched inside the reasoning loop.
+
+Savvy is **imperative** — the caller fetches a DiagnosticSnapshot first,
+then asks the LLM about it. The LLM never decides what data to fetch.
+
+This is a deliberate tradeoff:
+
+**LangChain reactive approach:**
+- Pro: LLM can chain multiple tools, follow-up on findings, ask for more data
+- Con: unpredictable token usage, harder to test, LLM can hallucinate tool calls
+- Con: no typed data contract — tools return strings, LLM must parse them
+
+**Savvy imperative approach:**
+- Pro: deterministic data collection, predictable token usage
+- Pro: typed DiagnosticSnapshot is testable and inspectable before LLM sees it
+- Pro: same snapshot can be logged for training without capturing LLM internals
+- Con: LLM cannot decide to fetch additional data mid-reasoning
+
+### Where Savvy Should Move
+
+To get LangChain-style flexibility without losing the typed contract:
+
+1. **Keep DiagnosticSnapshot as the contract** — never let raw strings reach the LLM
+2. **Add a multi-step reasoning loop** — allow the agent to request additional
+   snapshots from other connectors based on initial findings
+3. **Connectors as typed tools** — wrap each connector as a LangChain-compatible
+   Tool that returns a serialized DiagnosticSnapshot, not a raw string
+
+This gives us the best of both: LangChain's reactive chaining with Savvy's
+typed, testable, trainable data layer underneath.
+
+### On Training Data
+
+LangChain has no built-in training pipeline. Savvy's ConversationLogger →
+Oumi export is a differentiator — every query is automatically a training
+example. LangChain agents would require significant instrumentation to capture
+the same structured data.
+
+This matters for Alisson's long-term goal: a small specialist model trained
+only on network/infrastructure diagnostics. LangChain gives you a great
+reasoning framework but you would still need to build the training pipeline.
+Savvy already has it.
