@@ -21,6 +21,7 @@ from typing import Optional
 import time
 
 from core.llm import BaseLLMBackend, AnthropicBackend, LLMResponse
+from core.tracer import LLMTracer
 
 from agents.base import AgentResponse, BaseAgent
 from core.history import snapshot_history
@@ -72,6 +73,7 @@ class DiagnosticAgent(BaseAgent):
             self._backend = backend
         else:
             self._backend = AnthropicBackend(api_key=api_key, model=model)
+        self._tracer = LLMTracer(self._backend)
         self._max_tokens = max_tokens
         self._logger = ConversationLogger() if enable_logging else None
 
