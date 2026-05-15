@@ -27,7 +27,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Optional
 
-import anthropic
+from core.llm import AnthropicBackend
+from core.tracer import LLMTracer
 
 from core.schema import DiagnosticSnapshot, Severity
 
@@ -174,9 +175,8 @@ class FleetAgent:
         model: str = _DEFAULT_MODEL,
         max_tokens: int = 2048,
     ) -> None:
-        self._client = anthropic.Anthropic(
-            api_key=api_key or os.environ.get("ANTHROPIC_API_KEY", "")
-        )
+        self._backend = AnthropicBackend(api_key=api_key, model=model)
+        self._tracer = LLMTracer(self._backend)
         self._model = model
         self._max_tokens = max_tokens
 
@@ -186,14 +186,13 @@ class FleetAgent:
         """
         prompt = self._build_prompt(snapshot)
 
-        response = self._client.messages.create(
-            model=self._model,
-            max_tokens=self._max_tokens,
-            system=_FLEET_SYSTEM_PROMPT,
+        response = self._tracer.complete(
+            system_prompt=_FLEET_SYSTEM_PROMPT,
             messages=[{"role": "user", "content": prompt}],
+            max_tokens=self._max_tokens,
         )
 
-        raw = response.content[0].text.strip()
+        raw = response.text.strip()
         raw = raw.replace("```json", "").replace("```", "").strip()
         data = json.loads(raw)
 
