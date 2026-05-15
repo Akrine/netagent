@@ -15,7 +15,8 @@ import json
 import os
 from typing import Optional
 
-import anthropic
+from core.llm import BaseLLMBackend, AnthropicBackend
+from core.tracer import LLMTracer
 
 from connectors.base import BaseConnector, ConnectorError
 from core.deduplication import deduplicate_snapshots
@@ -72,9 +73,8 @@ class MultiConnectorAgent:
         enable_logging: bool = True,
     ) -> None:
         self._connectors = connectors
-        self._client = anthropic.Anthropic(
-            api_key=api_key or os.environ.get("ANTHROPIC_API_KEY", "")
-        )
+        self._backend = AnthropicBackend(api_key=api_key, model=model)
+        self._tracer = LLMTracer(self._backend)
         self._model = model
         self._max_tokens = max_tokens
         self._logger = ConversationLogger() if enable_logging else None
@@ -121,14 +121,13 @@ class MultiConnectorAgent:
         messages = list(history) if history else []
         messages.append({"role": "user", "content": question})
 
-        response = self._client.messages.create(
-            model=self._model,
-            max_tokens=self._max_tokens,
-            system=system_prompt,
+        response = self._tracer.complete(
+            system_prompt=system_prompt,
             messages=messages,
+            max_tokens=self._max_tokens,
         )
 
-        answer = response.content[0].text
+        answer = response.text
         overall = self._compute_overall_severity(snapshots)
 
         correlated = deduplicate_snapshots(snapshots)
